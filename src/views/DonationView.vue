@@ -1,0 +1,980 @@
+<template>
+  <div class="donation-container">
+    <header class="header">
+      <h1>{{ shelter?.name }}への支援・寄付</h1>
+      <button @click="goBack" class="back-btn">← 詳細画面に戻る</button>
+    </header>
+
+    <div class="content" v-if="shelter">
+      <div class="shelter-summary">
+        <div class="summary-card">
+          <h2>支援先情報</h2>
+          <div class="shelter-info">
+            <div class="info-row">
+              <span class="label">避難所名:</span>
+              <span class="value">{{ shelter.name }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">収容状況:</span>
+              <span class="value">{{ shelter.currentCapacity }} / {{ shelter.maxCapacity }}人</span>
+            </div>
+            <div class="info-row">
+              <span class="label">緊急度:</span>
+              <span class="value">
+                <span class="status-badge" :class="`status-${shelter.urgency}`">
+                  {{ getUrgencyText(shelter.urgency) }}
+                </span>
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="label">運営責任者:</span>
+              <span class="value">{{ shelter.manager }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="donation-methods">
+        <h2>支援方法を選択</h2>
+        
+        <div class="method-tabs">
+          <button 
+            v-for="method in methods" 
+            :key="method.id"
+            @click="selectedMethod = method.id"
+            :class="['method-tab', { active: selectedMethod === method.id }]"
+          >
+            <div class="tab-icon">{{ method.icon }}</div>
+            <div class="tab-text">{{ method.name }}</div>
+          </button>
+        </div>
+
+        <div class="method-content">
+          <!-- 金銭寄付 -->
+          <div v-if="selectedMethod === 'money'" class="donation-form">
+            <h3>金銭による寄付</h3>
+            
+            <div class="amount-selection">
+              <h4>寄付金額を選択</h4>
+              <div class="preset-amounts">
+                <button 
+                  v-for="amount in presetAmounts" 
+                  :key="amount"
+                  @click="selectedAmount = amount"
+                  :class="['amount-btn', { active: selectedAmount === amount }]"
+                >
+                  ¥{{ amount.toLocaleString() }}
+                </button>
+              </div>
+              
+              <div class="custom-amount">
+                <label>その他の金額:</label>
+                <div class="input-group">
+                  <span class="currency">¥</span>
+                  <input 
+                    v-model.number="customAmount" 
+                    type="number" 
+                    placeholder="任意の金額を入力"
+                    @input="selectedAmount = 0"
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="support-organization">
+              <h4>支援団体を選択</h4>
+              <div class="organization-list">
+                <label 
+                  v-for="org in supportOrganizations" 
+                  :key="org.id"
+                  class="org-option"
+                >
+                  <input 
+                    type="radio" 
+                    :value="org.id" 
+                    v-model="selectedOrganization"
+                  >
+                  <div class="org-info">
+                    <div class="org-name">{{ org.name }}</div>
+                    <div class="org-description">{{ org.description }}</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="donation-message">
+              <h4>メッセージ (任意)</h4>
+              <textarea 
+                v-model="donationMessage"
+                placeholder="応援メッセージを入力してください..."
+                class="message-textarea"
+              ></textarea>
+            </div>
+
+            <button 
+              @click="processDonation"
+              :disabled="!canProceedDonation"
+              class="donate-btn"
+            >
+              ¥{{ getFinalAmount().toLocaleString() }}を寄付する
+            </button>
+          </div>
+
+          <!-- 物資支援 -->
+          <div v-if="selectedMethod === 'goods'" class="goods-form">
+            <h3>物資による支援</h3>
+            
+            <div class="goods-selection">
+              <h4>支援可能な物資を選択</h4>
+              <div class="goods-categories">
+                <button 
+                  v-for="category in goodsCategories" 
+                  :key="category.id"
+                  @click="selectedGoodsCategory = category.id"
+                  :class="['category-btn', { active: selectedGoodsCategory === category.id }]"
+                >
+                  {{ category.name }}
+                </button>
+              </div>
+              
+              <div class="goods-list">
+                <label 
+                  v-for="item in getCurrentGoodsItems()" 
+                  :key="item.id"
+                  class="goods-item"
+                >
+                  <input 
+                    type="checkbox" 
+                    :value="item.id" 
+                    v-model="selectedGoods"
+                  >
+                  <div class="item-info">
+                    <div class="item-name">{{ item.name }}</div>
+                    <div class="item-note">{{ item.note }}</div>
+                  </div>
+                  <div class="quantity-input">
+                    <input 
+                      v-model.number="goodsQuantities[item.id]"
+                      type="number" 
+                      min="1" 
+                      :placeholder="item.unit"
+                    >
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="delivery-info">
+              <h4>配送情報</h4>
+              <div class="delivery-note">
+                <p>⚠️ 物資支援は以下の配送先にお送りください：</p>
+                <div class="delivery-address">
+                  <strong>配送先:</strong><br>
+                  〒150-0001<br>
+                  東京都渋谷区神宮前1-1-1<br>
+                  災害支援物資センター<br>
+                  TEL: 03-1234-5678
+                </div>
+                <p>※ 必ず「{{ shelter.name }}宛」と明記してください</p>
+              </div>
+            </div>
+
+            <button 
+              @click="submitGoodsSupport"
+              :disabled="selectedGoods.length === 0"
+              class="support-btn"
+            >
+              物資支援を申し込む
+            </button>
+          </div>
+
+          <!-- ボランティア -->
+          <div v-if="selectedMethod === 'volunteer'" class="volunteer-form">
+            <h3>ボランティア支援</h3>
+            
+            <div class="volunteer-info">
+              <div class="info-card">
+                <h4>現在募集中のボランティア</h4>
+                <div class="volunteer-needs">
+                  <div class="need-item">
+                    <div class="need-title">清掃・整理作業</div>
+                    <div class="need-details">避難所内の清掃、物資の整理整頓</div>
+                    <div class="need-time">平日 9:00-17:00</div>
+                  </div>
+                  <div class="need-item">
+                    <div class="need-title">食事配膳サポート</div>
+                    <div class="need-details">食事の準備、配膳、片付け</div>
+                    <div class="need-time">毎日 6:00-9:00, 11:00-14:00, 17:00-20:00</div>
+                  </div>
+                  <div class="need-item">
+                    <div class="need-title">高齢者・子供のケア</div>
+                    <div class="need-details">話し相手、見守り、遊び相手</div>
+                    <div class="need-time">平日 10:00-16:00</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="volunteer-contact">
+              <h4>ボランティア申し込み</h4>
+              <div class="contact-info">
+                <p>ボランティアをご希望の方は、以下にお電話またはメールでご連絡ください：</p>
+                <div class="contact-details">
+                  <div class="contact-item">
+                    <strong>電話:</strong> 03-1234-5679
+                  </div>
+                  <div class="contact-item">
+                    <strong>メール:</strong> volunteer@disaster-support.go.jp
+                  </div>
+                  <div class="contact-item">
+                    <strong>受付時間:</strong> 9:00-18:00（年中無休）
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              @click="openVolunteerContact"
+              class="volunteer-btn"
+            >
+              ボランティアに参加する
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 寄付完了モーダル -->
+    <div v-if="showDonationSuccess" class="success-modal">
+      <div class="modal-content">
+        <div class="success-icon">✅</div>
+        <h3>寄付手続きが完了しました</h3>
+        <p>{{ shelter?.name }}への支援ありがとうございます。</p>
+        <p>寄付金は{{ selectedOrganizationName }}を通じて適切に配分されます。</p>
+        <button @click="closeDonationSuccess" class="modal-btn">OK</button>
+      </div>
+    </div>
+
+    <!-- 物資支援完了モーダル -->
+    <div v-if="showGoodsSuccess" class="success-modal">
+      <div class="modal-content">
+        <div class="success-icon">📦</div>
+        <h3>物資支援申し込みが完了しました</h3>
+        <p>配送先情報をご確認の上、物資をお送りください。</p>
+        <button @click="showGoodsSuccess = false" class="modal-btn">OK</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, reactive } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
+
+const shelter = ref<any>(null)
+const selectedMethod = ref('money')
+const selectedAmount = ref(5000)
+const customAmount = ref<number>(0)
+const selectedOrganization = ref('redcross')
+const donationMessage = ref('')
+const selectedGoodsCategory = ref('food')
+const selectedGoods = ref<string[]>([])
+const goodsQuantities = reactive<Record<string, number>>({})
+const showDonationSuccess = ref(false)
+const showGoodsSuccess = ref(false)
+
+const methods = [
+  { id: 'money', name: '金銭寄付', icon: '💰' },
+  { id: 'goods', name: '物資支援', icon: '📦' },
+  { id: 'volunteer', name: 'ボランティア', icon: '🤝' }
+]
+
+const presetAmounts = [1000, 3000, 5000, 10000, 30000, 50000]
+
+const supportOrganizations = [
+  {
+    id: 'redcross',
+    name: '日本赤十字社',
+    description: '国際的な人道支援組織として、災害時の緊急支援を行います'
+  },
+  {
+    id: 'local_gov',
+    name: '地方自治体災害対策本部',
+    description: '地域に密着した支援を迅速に実施します'
+  },
+  {
+    id: 'npo',
+    name: 'NPO災害支援ネットワーク',
+    description: '市民参加型の支援活動を推進します'
+  }
+]
+
+const goodsCategories = [
+  { id: 'food', name: '食料・水' },
+  { id: 'clothing', name: '衣類・日用品' },
+  { id: 'medical', name: '医療・衛生用品' },
+  { id: 'other', name: 'その他' }
+]
+
+const goodsItems = [
+  // 食料・水
+  { id: 'water', name: 'ミネラルウォーター', category: 'food', unit: 'L', note: '500ml・2Lボトル' },
+  { id: 'rice', name: 'お米・おにぎり', category: 'food', unit: 'kg', note: '無洗米推奨' },
+  { id: 'canned', name: '缶詰・レトルト食品', category: 'food', unit: '個', note: '長期保存可能なもの' },
+  { id: 'baby_food', name: '離乳食', category: 'food', unit: '個', note: '月齢別' },
+  
+  // 衣類・日用品
+  { id: 'blanket', name: '毛布', category: 'clothing', unit: '枚', note: '清潔なもの' },
+  { id: 'towel', name: 'タオル', category: 'clothing', unit: '枚', note: 'バスタオル・フェイスタオル' },
+  { id: 'underwear', name: '下着・靴下', category: 'clothing', unit: 'セット', note: '新品のみ' },
+  { id: 'diaper', name: 'おむつ', category: 'clothing', unit: 'パック', note: 'サイズ別' },
+  
+  // 医療・衛生用品
+  { id: 'mask', name: 'マスク', category: 'medical', unit: 'パック', note: '不織布マスク' },
+  { id: 'sanitizer', name: '消毒用アルコール', category: 'medical', unit: 'L', note: '70%以上のもの' },
+  { id: 'tissue', name: 'ティッシュ・トイレットペーパー', category: 'medical', unit: 'パック', note: '' },
+  
+  // その他
+  { id: 'battery', name: '乾電池', category: 'other', unit: 'パック', note: '単1〜単4' },
+  { id: 'flashlight', name: '懐中電灯', category: 'other', unit: '個', note: '電池付き' },
+  { id: 'radio', name: '携帯ラジオ', category: 'other', unit: '個', note: '電池式・手回し式' }
+]
+
+const mockShelters = {
+  shelter1: {
+    id: 'shelter1',
+    name: '中央小学校',
+    urgency: 'urgent',
+    currentCapacity: 180,
+    maxCapacity: 200,
+    manager: '校長 田中一郎'
+  },
+  shelter2: {
+    id: 'shelter2',
+    name: '市民体育館',
+    urgency: 'important',
+    currentCapacity: 90,
+    maxCapacity: 150,
+    manager: '館長 佐藤花子'
+  },
+  shelter3: {
+    id: 'shelter3',
+    name: '総合公園体育館',
+    urgency: 'normal',
+    currentCapacity: 45,
+    maxCapacity: 100,
+    manager: '館長 山田太郎'
+  }
+}
+
+const canProceedDonation = computed(() => {
+  return (selectedAmount.value > 0 || customAmount.value > 0) && selectedOrganization.value
+})
+
+const getFinalAmount = () => {
+  return customAmount.value > 0 ? customAmount.value : selectedAmount.value
+}
+
+const selectedOrganizationName = computed(() => {
+  const org = supportOrganizations.find(o => o.id === selectedOrganization.value)
+  return org?.name || ''
+})
+
+const getUrgencyText = (urgency: string) => {
+  const map: Record<string, string> = {
+    urgent: '緊急支援必要',
+    important: '支援必要',
+    normal: '状況良好'
+  }
+  return map[urgency] || '状況良好'
+}
+
+const getCurrentGoodsItems = () => {
+  return goodsItems.filter(item => item.category === selectedGoodsCategory.value)
+}
+
+const processDonation = () => {
+  console.log('Processing donation:', {
+    amount: getFinalAmount(),
+    organization: selectedOrganization.value,
+    message: donationMessage.value,
+    shelter: shelter.value?.id
+  })
+  showDonationSuccess.value = true
+}
+
+const submitGoodsSupport = () => {
+  const supportItems = selectedGoods.value.map(id => ({
+    id,
+    quantity: goodsQuantities[id] || 1
+  }))
+  
+  console.log('Submitting goods support:', {
+    items: supportItems,
+    shelter: shelter.value?.id
+  })
+  showGoodsSuccess.value = true
+}
+
+const openVolunteerContact = () => {
+  alert('実際のアプリケーションでは、ここで電話アプリやメールアプリが開かれます。\n\n連絡先: 03-1234-5679\nvolunteer@disaster-support.go.jp')
+}
+
+const closeDonationSuccess = () => {
+  showDonationSuccess.value = false
+  router.push('/supporter')
+}
+
+const goBack = () => {
+  router.push(`/shelter/${route.params.id}`)
+}
+
+onMounted(() => {
+  const shelterId = route.params.id as string
+  shelter.value = (mockShelters as any)[shelterId] || mockShelters.shelter1
+})
+</script>
+
+<style scoped>
+.donation-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.header {
+  background: #FF6B35;
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.shelter-summary {
+  margin-bottom: 30px;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card h2 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.shelter-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-row .label {
+  font-weight: 600;
+  color: #666;
+  font-size: 14px;
+}
+
+.info-row .value {
+  font-size: 16px;
+  color: #333;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-urgent {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-important {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-normal {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.donation-methods {
+  background: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.donation-methods h2 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.method-tabs {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.method-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 120px;
+}
+
+.method-tab.active {
+  background: #FF6B35;
+  color: white;
+  border-color: #FF6B35;
+}
+
+.tab-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.tab-text {
+  font-weight: 600;
+}
+
+.donation-form h3,
+.goods-form h3,
+.volunteer-form h3 {
+  margin: 0 0 25px 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.amount-selection {
+  margin-bottom: 30px;
+}
+
+.amount-selection h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.preset-amounts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.amount-btn {
+  padding: 15px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.amount-btn.active {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.custom-amount {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.currency {
+  background: #f5f5f5;
+  padding: 12px 15px;
+  font-weight: bold;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 12px 15px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+.support-organization {
+  margin-bottom: 30px;
+}
+
+.support-organization h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.organization-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.org-option {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.org-option:has(input:checked) {
+  background: #e8f5e8;
+  border-color: #4CAF50;
+}
+
+.org-option input {
+  margin-right: 15px;
+}
+
+.org-info {
+  flex: 1;
+}
+
+.org-name {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.org-description {
+  font-size: 14px;
+  color: #666;
+}
+
+.donation-message {
+  margin-bottom: 30px;
+}
+
+.donation-message h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.message-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.donate-btn,
+.support-btn,
+.volunteer-btn {
+  width: 100%;
+  padding: 15px;
+  background: #FF6B35;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.donate-btn:hover:not(:disabled),
+.support-btn:hover:not(:disabled),
+.volunteer-btn:hover:not(:disabled) {
+  background: #FF5722;
+}
+
+.donate-btn:disabled,
+.support-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.goods-selection {
+  margin-bottom: 30px;
+}
+
+.goods-categories {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.category-btn {
+  padding: 8px 16px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.category-btn.active {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.goods-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goods-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.goods-item:has(input:checked) {
+  background: #e8f5e8;
+  border-color: #4CAF50;
+}
+
+.goods-item input[type="checkbox"] {
+  margin-right: 15px;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.item-note {
+  font-size: 12px;
+  color: #666;
+}
+
+.quantity-input {
+  width: 100px;
+}
+
+.quantity-input input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  text-align: center;
+}
+
+.delivery-info {
+  margin-bottom: 30px;
+}
+
+.delivery-note {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 5px;
+  padding: 20px;
+}
+
+.delivery-address {
+  background: white;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 5px;
+  border-left: 4px solid #FF6B35;
+}
+
+.volunteer-info {
+  margin-bottom: 30px;
+}
+
+.info-card {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 8px;
+}
+
+.volunteer-needs {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.need-item {
+  padding: 15px;
+  background: white;
+  border-radius: 5px;
+  border-left: 4px solid #4CAF50;
+}
+
+.need-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.need-details {
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.need-time {
+  font-size: 14px;
+  color: #2196F3;
+  font-weight: 500;
+}
+
+.volunteer-contact {
+  margin-bottom: 30px;
+}
+
+.contact-info {
+  background: #e3f2fd;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.contact-details {
+  margin-top: 15px;
+}
+
+.contact-item {
+  margin-bottom: 10px;
+  padding: 5px 0;
+}
+
+.success-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 400px;
+  margin: 20px;
+}
+
+.success-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.modal-content h3 {
+  margin: 0 0 15px 0;
+  color: #4CAF50;
+}
+
+.modal-content p {
+  margin: 10px 0;
+  color: #666;
+}
+
+.modal-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .content {
+    padding: 10px;
+  }
+  
+  .method-tabs {
+    justify-content: center;
+  }
+  
+  .preset-amounts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .goods-categories {
+    justify-content: center;
+  }
+  
+  .shelter-info {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
