@@ -54,6 +54,22 @@
               <span class="label">緊急度の高い要請:</span>
               <span class="value urgent-count">{{ shelter.urgentRequests }}件</span>
             </div>
+            <!-- 必要支援金額と進捗ゲージ -->
+            <div class="info-item">
+              <span class="label">必要支援金額:</span>
+              <span class="value">¥{{ getNeededAmount(shelter.id) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">支援進捗:</span>
+              <span class="value">¥{{ shelter.currentSupport }} / ¥{{ getNeededAmount(shelter.id) }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" :style="{ width: getProgress(shelter.id) + '%' }"></div>
+            </div>
+            <div class="info-item">
+              <span class="label">進捗率:</span>
+              <span class="value">{{ getProgress(shelter.id).toFixed(1) }}%</span>
+            </div>
           </div>
           
           <div class="shelter-requests">
@@ -87,9 +103,26 @@ const router = useRouter()
 const mapContainer = ref<HTMLElement>()
 let map: L.Map
 
+const items = [
+  { name: 'ミネラルウォーター', price : 100 },
+  { name: 'おにぎり', price: 150 },
+  { name: 'パン', price: 120 },
+  { name: 'マスク', price: 200 },
+  { name: 'タオル', price: 150 },
+  { name: '非常食', price: 300 },
+  { name: '毛布', price: 250 },
+  { name: 'おむつ', price: 180 },
+  { name: '救急セット', price: 500 },
+  { name: '衣類', price: 400 },
+  { name: '衛生用品', price: 250 },
+  { name: '離乳食', price: 300 },
+  { name: '常備薬', price: 450 },
+  { name: '乾電池', price: 200 }
+]
+
 const shelters = [
   {
-    id: 'shelter1',
+    id: 1,
     name: '中央小学校',
     lat: 35.6762,
     lng: 139.6503,
@@ -98,10 +131,12 @@ const shelters = [
     maxCapacity: 200,
     recentRequests: 15,
     urgentRequests: 8,
-    topRequests: ['ミネラルウォーター', '離乳食', '毛布', '常備薬']
+    topRequests: ['ミネラルウォーター', '離乳食', '毛布', '常備薬'],
+    requestQuantities: { 'ミネラルウォーター': 50, '離乳食': 20, '毛布': 30, '常備薬': 10 },
+    currentSupport: 12000
   },
   {
-    id: 'shelter2',
+    id: 2,
     name: '市民体育館',
     lat: 35.6712,
     lng: 139.6533,
@@ -110,10 +145,12 @@ const shelters = [
     maxCapacity: 150,
     recentRequests: 8,
     urgentRequests: 3,
-    topRequests: ['おにぎり', 'タオル', '乾電池']
+    topRequests: ['おにぎり', 'タオル', '乾電池'],
+    requestQuantities: { 'おにぎり': 40, 'タオル': 25, '乾電池': 30 },
+    currentSupport: 8000
   },
   {
-    id: 'shelter3',
+    id: 3,
     name: '総合公園体育館',
     lat: 35.6792,
     lng: 139.6473,
@@ -122,7 +159,9 @@ const shelters = [
     maxCapacity: 100,
     recentRequests: 4,
     urgentRequests: 1,
-    topRequests: ['パン', 'マスク']
+    topRequests: ['パン', 'マスク'],
+    requestQuantities: { 'パン': 30, 'マスク': 20 },
+    currentSupport: 5000
   }
 ]
 
@@ -142,6 +181,33 @@ const getMarkerColor = (urgency: string) => {
     low: 'green'
   }
   return colors[urgency] || 'green'
+}
+
+// アイテムの価格を取得する関数
+const getItemPrice = (name: string) => {
+  const item = items.find(i => i.name === name)
+  return item ? item.price : 0
+}
+
+// 必要支援金額を計算する関数
+const getNeededAmount = (shelterID: number) => {
+  const shelter = shelters.find(s => s.id === shelterID)
+  let total = 0
+  if (!shelter || !shelter.topRequests || !shelter.requestQuantities) return 0
+  shelter.topRequests.forEach(name => {
+    const quantity = shelter.requestQuantities[name] || 0
+    total += getItemPrice(name) * quantity
+  })
+  return total
+}
+
+// 進捗率を計算する関数
+const getProgress = (shelterID: number): number => {
+  const shelter = shelters.find(s => s.id === shelterID)
+  if (!shelter || typeof shelter.currentSupport !== 'number') return 0
+  const needed = getNeededAmount(shelterID)
+  if (needed === 0) return 0
+  return Math.min((shelter.currentSupport / needed) * 100, 100)
 }
 
 const viewShelterDetail = (shelterId: string) => {
@@ -430,6 +496,21 @@ onMounted(() => {
 
 .view-detail-btn:hover {
   background: #1976D2;
+}
+
+.progress-bar {
+  background: #e0e0e0;
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.progress {
+  height: 100%;
+  background: #76c7c0;
+  width: 0;
+  transition: width 0.4s;
 }
 
 @media (max-width: 768px) {
