@@ -111,6 +111,20 @@
               ></textarea>
             </div>
 
+              <!-- 支払方法選択 -->
+              <div class="payment-method">
+                <h4>お支払方法の選択</h4>
+                <label class="payment-option">
+                  <input type="radio" value="card" v-model="paymentMethod"> クレジットカード
+                </label>
+                <label class="payment-option">
+                  <input type="radio" value="bank" v-model="paymentMethod"> 銀行振込
+                </label>
+                <label class="payment-option">
+                  <input type="radio" value="paypay" v-model="paymentMethod"> PayPay
+                </label>
+              </div>
+
             <button 
               @click="processDonation"
               :disabled="!canProceedDonation"
@@ -129,7 +143,8 @@
         <div class="success-icon">✅</div>
         <h3>寄付手続きが完了しました</h3>
         <p>{{ shelter?.name }}への支援ありがとうございます。</p>
-        <p>寄付金は{{ selectedOrganizationName }}を通じて適切に配分されます。</p>
+  <p>支払方法: {{ paymentMethodLabel }}</p>
+  <p>寄付金は{{ selectedOrganizationName }}を通じて適切に配分されます。</p>
         <button @click="closeDonationSuccess" class="modal-btn">OK</button>
       </div>
     </div>
@@ -164,6 +179,17 @@ const selectedGoods = ref<string[]>([])
 const goodsQuantities = reactive<Record<string, number>>({})
 const showDonationSuccess = ref(false)
 const showGoodsSuccess = ref(false)
+
+// 支払方法
+const paymentMethod = ref('card')
+const paymentMethodLabel = computed(() => {
+  const map: Record<string, string> = {
+    card: 'クレジットカード',
+    bank: '銀行振込',
+    paypay: 'PayPay'
+  }
+  return map[paymentMethod.value] || '未選択'
+})
 
 const methods = [
   { id: 'money', name: '金銭寄付', icon: '💰' }
@@ -278,7 +304,8 @@ const processDonation = () => {
     amount: getFinalAmount(),
     organization: selectedOrganization.value,
     message: donationMessage.value,
-    shelter: shelter.value?.id
+  shelter: shelter.value?.id,
+  paymentMethod: paymentMethod.value
   })
   showDonationSuccess.value = true
 }
