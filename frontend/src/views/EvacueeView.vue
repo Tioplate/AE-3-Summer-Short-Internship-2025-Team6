@@ -64,6 +64,12 @@
             placeholder="その他に必要な物資や詳細な要望があれば記入してください..."
             class="free-request-textarea"
           ></textarea>
+          <input 
+            v-model="itemLink" 
+            type="url" 
+            placeholder="楽天商品のURLを入力してください"
+            class="item-link-input"
+          >
         </div>
 
         <button @click="submitRequest" class="submit-btn" :disabled="!hasAnyRequest()">
@@ -76,7 +82,7 @@
       <div class="modal-content">
         <h3>要請を送信しました</h3>
         <p>支援者の方々に物資要請が届けられました。</p>
-        <button @click="showSuccess = false" class="modal-btn">OK</button>
+        <button @click="goToMyRequests" class="modal-btn">OK</button>
       </div>
     </div>
   </div>
@@ -92,6 +98,7 @@ const router = useRouter()
 const selectedShelter = ref('')
 const selectedCategory = ref('food')
 const freeRequest = ref('')
+const itemLink = ref('')
 const showSuccess = ref(false)
 const itemRequests = reactive<Record<string, number>>({})
 
@@ -158,7 +165,7 @@ const decreaseQuantity = (itemId: string) => {
 }
 
 const hasAnyRequest = () => {
-  return Object.values(itemRequests).some(qty => qty > 0) || freeRequest.value.trim() !== ''
+  return Object.values(itemRequests).some(qty => qty > 0) || freeRequest.value.trim() !== '' || itemLink.value.trim() !== '';
 }
 
 const submitRequest = () => {
@@ -181,6 +188,11 @@ const goBack = () => {
 }
 const goToMapView = () => {
   router.push('/evacueemapview')
+}
+
+const goToMyRequests = () => {
+  showSuccess.value = false;
+  router.push('/myrequests')
 }
 </script>
 
@@ -388,6 +400,13 @@ const goToMapView = () => {
   border: 2px solid #ddd;
   border-radius: 5px;
   resize: vertical;
+  font-family: inherit;
+}
+.item-link-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
   font-family: inherit;
 }
 
