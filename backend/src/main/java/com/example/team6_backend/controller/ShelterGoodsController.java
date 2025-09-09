@@ -8,10 +8,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -79,5 +77,29 @@ public class ShelterGoodsController {
 //                retJSON, new TypeReference<List<Map<String, Object>>>() {}
 //        );
         return retJSON;
+    }
+
+    // 删除
+    @DeleteMapping("/delete")
+    public int deleteById(@RequestParam("goodsId") String goodsId) {
+        return shelterGoodsService.deleteById(goodsId);
+    }
+
+    // 修改
+    @PostMapping("/update")
+    public int update(@RequestBody ShelterGoods shelterGoods) {
+        return shelterGoodsService.update(shelterGoods);
+    }
+
+    // 按shelter_id查找
+    @GetMapping("/listByShelterId")
+    public List<ShelterGoods> listByShelterId(@RequestParam("shelterId") String shelterId) {
+        return shelterGoodsService.selectByShelterId(shelterId);
+    }
+
+    // 按goods_id查找
+    @GetMapping("/getByGoodsId")
+    public ShelterGoods getByGoodsId(@RequestParam("goodsId") String goodsId) {
+        return shelterGoodsService.selectByGoodsId(goodsId);
     }
 }
