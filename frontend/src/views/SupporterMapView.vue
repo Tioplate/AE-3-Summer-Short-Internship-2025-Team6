@@ -261,6 +261,22 @@ const initMap = () => {
         <h3>${shelter.name}</h3>
         <p><strong>収容:</strong> ${shelter.currentCapacity}/${shelter.maxCapacity}人</p>
         <p><strong>緊急要請:</strong> ${shelter.urgentRequests}件</p>
+        <p><strong>支援進捗:</strong> ¥${shelter.currentSupport} / ¥${getNeededAmount(shelter.id)}</p>
+        <div class="progress-bar" style="
+          background: #e0e0e0;
+          border-radius: 4px;
+          height: 8px;
+          overflow: hidden;
+          margin: 10px 0;
+        ">
+          <div class="progress" style="
+            height: 100%;
+            background: #76c7c0;
+            width: ${getProgress(shelter.id)}%;
+            transition: width 0.4s;
+          "></div>
+        </div>
+        <p><strong>進捗率:</strong> ${getProgress(shelter.id).toFixed(1)}%</p>
         <button onclick="window.viewShelterFromMap('${shelter.id}')" style="
           background: #2196F3;
           color: white;
