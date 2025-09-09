@@ -125,12 +125,47 @@
                 </label>
               </div>
 
+              <!-- ポイント利用 -->
+              <div class="points-section">
+                <h4>ポイントを利用する</h4>
+                <label>
+                  <input type="checkbox" v-model="usePoints"> ポイントを利用する（保有: ¥{{ pointsBalance }})
+                </label>
+                <div v-if="usePoints" class="use-points-input">
+                  <label>利用するポイント:</label>
+                  <div>
+                    <input type="number" v-model.number="usedPoints" :max="maxUsedPoints" :min="0">
+                    <span> ポイント</span>
+                  </div>
+
+                  <!-- ポイントと支払いの内訳表示 -->
+                  <div class="points-breakdown">
+                    <div class="break-row">
+                      <span>寄付金額（ベース）:</span>
+                      <span>¥{{ baseAmount.toLocaleString() }}</span>
+                    </div>
+                    <div class="break-row">
+                      <span>利用ポイント:</span>
+                      <span>¥{{ usedPointsClamped.toLocaleString() }}</span>
+                    </div>
+                    <div class="break-row">
+                      <span>支払方法:</span>
+                      <span>{{ paymentMethodLabel }}</span>
+                    </div>
+                    <div class="break-row total">
+                      <strong>最終支払額:</strong>
+                      <strong>¥{{ finalPayable.toLocaleString() }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             <button 
               @click="processDonation"
               :disabled="!canProceedDonation"
               class="donate-btn"
             >
-              ¥{{ getFinalAmount().toLocaleString() }}を寄付する
+              ¥{{ finalPayable.toLocaleString() }}を寄付する（ポイント適用後）
             </button>
           </div>
         </div>
@@ -162,7 +197,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
@@ -189,6 +224,42 @@ const paymentMethodLabel = computed(() => {
     paypay: 'PayPay'
   }
   return map[paymentMethod.value] || '未選択'
+})
+
+// ポイント機能（デモ用）
+const pointsBalance = ref(2000) // 保有ポイント（ダミー）
+const usePoints = ref(false)
+const usedPoints = ref<number>(0)
+
+// ベース金額（テンプレート表示用）
+const baseAmount = computed(() => {
+  return getFinalAmount()
+})
+
+// 入力できる最大の利用ポイントは「保有ポイント」と「ベース金額」の小さい方にする
+const maxUsedPoints = computed(() => {
+  return Math.max(0, Math.min(pointsBalance.value, baseAmount.value))
+})
+
+// 常に 0 以上かつ maxUsedPoints 以下の値を返す（表示用）
+const usedPointsClamped = computed(() => {
+  const v = Number(usedPoints.value) || 0
+  return Math.max(0, Math.min(v, maxUsedPoints.value))
+})
+
+// 最終支払額: ポイント適用後（利用ポイントは maxUsedPoints で上限）
+const finalPayable = computed(() => {
+  const base = baseAmount.value
+  const use = usePoints.value ? usedPointsClamped.value : 0
+  return Math.max(base - use, 0)
+})
+
+// 入力された usedPoints を常に 0〜maxUsedPoints の範囲内に保つ
+watch(usedPoints, (val) => {
+  let n = Number(val) || 0
+  if (n < 0) n = 0
+  if (n > maxUsedPoints.value) n = maxUsedPoints.value
+  if (n !== usedPoints.value) usedPoints.value = n
 })
 
 const methods = [
@@ -305,7 +376,9 @@ const processDonation = () => {
     organization: selectedOrganization.value,
     message: donationMessage.value,
   shelter: shelter.value?.id,
-  paymentMethod: paymentMethod.value
+  paymentMethod: paymentMethod.value,
+  usedPoints: usePoints.value ? (usedPoints.value || 0) : 0,
+  finalPayable: finalPayable.value
   })
   showDonationSuccess.value = true
 }
@@ -558,6 +631,11 @@ onMounted(() => {
   font-size: 16px;
 }
 
+.use-points-input input[type="number"] {
+  font-size: 16px;
+  font-weight: 100;
+}
+
 .support-organization {
   margin-bottom: 30px;
 }
@@ -623,6 +701,46 @@ onMounted(() => {
   border-radius: 5px;
   resize: vertical;
   font-family: inherit;
+}
+
+/* ポイント利用欄の余白と内訳フォント調整 */
+.use-points-input {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* 入力欄と内訳の間隔 */
+}
+
+.points-breakdown {
+  margin-top: 6px;
+  padding: 12px;
+  background: #fbfbfc;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  font-size: 16px; /* 全体の基本フォントサイズ */
+  color: #333;
+}
+
+.points-breakdown .break-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.points-breakdown .total {
+  margin-top: 8px;
+  border-top: 1px dashed #e6e6e6;
+  padding-top: 8px;
+  font-size: 18px;
+}
+
+/* モバイル時にフォントを少し小さく、間隔も調整 */
+@media (max-width: 480px) {
+  .points-breakdown {
+    font-size: 15px;
+    padding: 10px;
+  }
 }
 
 .donate-btn,
