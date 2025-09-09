@@ -1,0 +1,14 @@
+<mapper namespace="com.example.demo.team6_backend.mapper.UserMapper">
+    <select id="selectAll" resultType="com.example.team6_backend.entity.User">
+        SELECT * FROM user;
+    </select>
+    <select id="selectById" parameterType="String" resultType="com.example.team6_backend.entity.User">
+        SELECT * FROM user WHERE user_id = #{userId};
+    </select>
+    <insert id="insert" parameterType="com.example.team6_backend.entity.User">
+        INSERT INTO user (user_id, password, permission) VALUES (#{userId}, #{password}, #{permission});
+    </insert>
+    <update id="update" parameterType="com.example.team6_backend.entity.User">
+        UPDATE user SET  password = #{password}, permission = #{permission} where user_id = #{userId};
+    </update>
+</mapper>
