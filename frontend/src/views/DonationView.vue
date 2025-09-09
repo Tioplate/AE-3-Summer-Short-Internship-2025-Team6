@@ -119,127 +119,6 @@
               ¥{{ getFinalAmount().toLocaleString() }}を寄付する
             </button>
           </div>
-
-          <!-- 物資支援 -->
-          <div v-if="selectedMethod === 'goods'" class="goods-form">
-            <h3>物資による支援</h3>
-            
-            <div class="goods-selection">
-              <h4>支援可能な物資を選択</h4>
-              <div class="goods-categories">
-                <button 
-                  v-for="category in goodsCategories" 
-                  :key="category.id"
-                  @click="selectedGoodsCategory = category.id"
-                  :class="['category-btn', { active: selectedGoodsCategory === category.id }]"
-                >
-                  {{ category.name }}
-                </button>
-              </div>
-              
-              <div class="goods-list">
-                <label 
-                  v-for="item in getCurrentGoodsItems()" 
-                  :key="item.id"
-                  class="goods-item"
-                >
-                  <input 
-                    type="checkbox" 
-                    :value="item.id" 
-                    v-model="selectedGoods"
-                  >
-                  <div class="item-info">
-                    <div class="item-name">{{ item.name }}</div>
-                    <div class="item-note">{{ item.note }}</div>
-                  </div>
-                  <div class="quantity-input">
-                    <input 
-                      v-model.number="goodsQuantities[item.id]"
-                      type="number" 
-                      min="1" 
-                      :placeholder="item.unit"
-                    >
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div class="delivery-info">
-              <h4>配送情報</h4>
-              <div class="delivery-note">
-                <p>⚠️ 物資支援は以下の配送先にお送りください：</p>
-                <div class="delivery-address">
-                  <strong>配送先:</strong><br>
-                  〒150-0001<br>
-                  東京都渋谷区神宮前1-1-1<br>
-                  災害支援物資センター<br>
-                  TEL: 03-1234-5678
-                </div>
-                <p>※ 必ず「{{ shelter.name }}宛」と明記してください</p>
-              </div>
-            </div>
-
-            <button 
-              @click="submitGoodsSupport"
-              :disabled="selectedGoods.length === 0"
-              class="support-btn"
-            >
-              物資支援を申し込む
-            </button>
-          </div>
-
-          <!-- ボランティア -->
-          <div v-if="selectedMethod === 'volunteer'" class="volunteer-form">
-            <h3>ボランティア支援</h3>
-            
-            <div class="volunteer-info">
-              <div class="info-card">
-                <h4>現在募集中のボランティア</h4>
-                <div class="volunteer-needs">
-                  <div class="need-item">
-                    <div class="need-title">清掃・整理作業</div>
-                    <div class="need-details">避難所内の清掃、物資の整理整頓</div>
-                    <div class="need-time">平日 9:00-17:00</div>
-                  </div>
-                  <div class="need-item">
-                    <div class="need-title">食事配膳サポート</div>
-                    <div class="need-details">食事の準備、配膳、片付け</div>
-                    <div class="need-time">毎日 6:00-9:00, 11:00-14:00, 17:00-20:00</div>
-                  </div>
-                  <div class="need-item">
-                    <div class="need-title">高齢者・子供のケア</div>
-                    <div class="need-details">話し相手、見守り、遊び相手</div>
-                    <div class="need-time">平日 10:00-16:00</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="volunteer-contact">
-              <h4>ボランティア申し込み</h4>
-              <div class="contact-info">
-                <p>ボランティアをご希望の方は、以下にお電話またはメールでご連絡ください：</p>
-                <div class="contact-details">
-                  <div class="contact-item">
-                    <strong>電話:</strong> 03-1234-5679
-                  </div>
-                  <div class="contact-item">
-                    <strong>メール:</strong> volunteer@disaster-support.go.jp
-                  </div>
-                  <div class="contact-item">
-                    <strong>受付時間:</strong> 9:00-18:00（年中無休）
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button 
-              @click="openVolunteerContact"
-              class="volunteer-btn"
-            >
-              ボランティアに参加する
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -287,9 +166,7 @@ const showDonationSuccess = ref(false)
 const showGoodsSuccess = ref(false)
 
 const methods = [
-  { id: 'money', name: '金銭寄付', icon: '💰' },
-  { id: 'goods', name: '物資支援', icon: '📦' },
-  { id: 'volunteer', name: 'ボランティア', icon: '🤝' }
+  { id: 'money', name: '金銭寄付', icon: '💰' }
 ]
 
 const presetAmounts = [1000, 3000, 5000, 10000, 30000, 50000]
