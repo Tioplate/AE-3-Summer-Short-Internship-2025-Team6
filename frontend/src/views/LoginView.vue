@@ -29,6 +29,17 @@
               <div class="btn-subtitle">避難所への支援・寄付</div>
             </div>
           </button>
+          
+          <button 
+            @click="loginAsAdmin" 
+            class="user-type-btn admin-btn"
+          >
+            <div class="btn-icon">🏢</div>
+            <div class="btn-text">
+              <div class="btn-title">運営者として利用</div>
+              <div class="btn-subtitle">避難所管理・物資管理</div>
+            </div>
+          </button>
         </div>
       </div>
     </div>
@@ -46,6 +57,10 @@ const loginAsEvacuee = () => {
 
 const loginAsSupporter = () => {
   router.push('/supporter')
+}
+
+const loginAsAdmin = () => {
+  router.push('/admin')
 }
 </script>
 
@@ -121,6 +136,11 @@ h3 {
 .supporter-btn:hover {
   border-color: #2196F3;
   background: #f8fbff;
+}
+
+.admin-btn:hover {
+  border-color: #FF9800;
+  background: #fffaf0;
 }
 
 .btn-icon {
