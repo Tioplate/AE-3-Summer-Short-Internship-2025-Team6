@@ -3,6 +3,7 @@
     <header class="header">
       <h1>物資要請投稿</h1>
       <button @click="goBack" class="back-btn">← ログイン画面に戻る</button>
+      <button @click="goToMapView" class="mapview-btn map-icon-btn">支援状況を見る</button>
     </header>
 
     <div class="content">
@@ -14,6 +15,7 @@
             {{ shelter.name }}
           </option>
         </select>
+
       </div>
 
       <div class="request-form" v-if="selectedShelter">
@@ -83,6 +85,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import EvacueeMapView from './EvacueeMapView.vue'
 
 const router = useRouter()
 
@@ -176,6 +179,9 @@ const submitRequest = () => {
 const goBack = () => {
   router.push('/')
 }
+const goToMapView = () => {
+  router.push('/evacueemapview')
+}
 </script>
 
 <style scoped>
@@ -212,6 +218,26 @@ const goBack = () => {
   background: rgba(255, 255, 255, 0.3);
 }
 
+.mapview-btn {
+  background: rgba(33, 150, 243, 0.5);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+  display: inline-flex;
+  align-items: center;
+}
+.mapview-btn:not(.map-icon-btn):hover {
+  background: rgba(33, 150, 243, 0.8);
+}
+.map-icon-btn {
+  padding-left: 36px; 
+  background-image: url('../assets/map-icon.svg');
+  background-repeat: no-repeat;
+  background-position: 10px center;
+}
 .content {
   max-width: 800px;
   margin: 0 auto;
