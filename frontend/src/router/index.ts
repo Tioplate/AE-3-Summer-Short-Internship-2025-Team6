@@ -33,6 +33,11 @@ const router = createRouter({
       name: 'evacueemapview',
       component: () => import('../views/EvacueeMapView.vue'),
     },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue'),
+    },
   ],
 })
 
