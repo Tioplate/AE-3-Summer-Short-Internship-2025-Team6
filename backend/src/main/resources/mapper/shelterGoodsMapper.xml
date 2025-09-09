@@ -1,3 +1,5 @@
 <mapper namespace="com.example.team6_backend.mapper.ShelterGoodsMapper">
-
+    <insert id="insert" parameterType="com.example.team6_backend.entity.ShelterGoods">
+        INSERT INTO shelter_goods (goods_id, goods_name, shelter_id, number_now, number_req, comment) VALUES (#{goodsId}, #{goodsName}, #{shelterId}, #{numberNow}, #{numberReq}, #{comment});
+    </insert>
 </mapper>

@@ -6,7 +6,6 @@ public class ShelterGoods {
     private String shelterId;
     private Integer numberNow;
     private Integer numberReq;
-    private Float price;
     private String comment;
 
     // Getters and Setters
@@ -25,9 +24,6 @@ public class ShelterGoods {
 
     public Integer getNumberReq() { return numberReq; }
     public void setNumberReq(Integer numberReq) { this.numberReq = numberReq; }
-
-    public Float getPrice() { return price; }
-    public void setPrice(Float price) { this.price = price; }
 
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
