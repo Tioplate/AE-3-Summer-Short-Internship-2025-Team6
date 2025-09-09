@@ -1,4 +1,4 @@
-<mapper namespace="com.example.demo.team6_backend.mapper.UserMapper">
+<mapper namespace="com.example.team6_backend.mapper.UserMapper">
     <select id="selectAll" resultType="com.example.team6_backend.entity.User">
         SELECT * FROM user;
     </select>

@@ -1,3 +1,3 @@
-<mapper namespace="com.example.demo.team6_backend.mapper.ShelterGoodsMapper">
+<mapper namespace="com.example.team6_backend.mapper.ShelterGoodsMapper">
 
 </mapper>
