@@ -18,6 +18,10 @@ public class RequestController {
 
     @PostMapping("/create")
     public ApiResponse<String> create(@RequestBody UserGoods userGoods) {
+        // 静默处理：数量<=0 直接返回成功，不插入
+        if (userGoods == null || userGoods.getNumber() == null || userGoods.getNumber() <= 0) {
+            return ApiResponse.successMessage("created");
+        }
         int affected = userGoodsService.create(userGoods);
         if (affected > 0) {
             return ApiResponse.successMessage("created");
