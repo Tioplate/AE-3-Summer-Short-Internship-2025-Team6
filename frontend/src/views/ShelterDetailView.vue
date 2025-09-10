@@ -3,8 +3,12 @@
     <header class="header">
       <h1>{{ shelter?.name }} - 物資要請詳細</h1>
       <div class="header-buttons">
-        <button @click="goBack" class="back-btn">← マップに戻る</button>
-        <button @click="goToDonation" class="donation-btn">💝 支援・寄付</button>
+        <button @click="goBack" class="back-btn">
+          <span class="icon">←</span> マップに戻る
+        </button>
+        <button @click="goToDonation" class="donation-btn">
+          <span class="icon">💝</span> 支援・寄付
+        </button>
       </div>
     </header>
 
@@ -71,16 +75,12 @@
             
             <div class="request-details">
               <div class="detail-item">
-                <span class="label">要求数量:</span>
+                <span class="label">届いた量:</span>
                 <span class="value quantity">{{ request.quantity }} {{ request.unit }}</span>
               </div>
               <div class="detail-item">
-                <span class="label">投稿時間:</span>
-                <span class="value">{{ request.timestamp }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">投稿者:</span>
-                <span class="value">{{ request.requester }}</span>
+                <span class="label  ">到着日時:</span>
+                <span class="value">{{ request.deliveredAt }}</span>
               </div>
             </div>
 
@@ -89,7 +89,7 @@
             </div>
 
             <div class="support-count">
-              <span class="support-text">この要請への支援表明: </span>
+              <span class="support-text">この要請への支援者数: </span>
               <span class="support-number">{{ request.supportCount }}人</span>
             </div>
           </div>
@@ -158,7 +158,8 @@ const filters = [
   { value: 'all', label: 'すべて' },
   { value: 'urgent', label: '緊急' },
   { value: 'important', label: '重要' },
-  { value: 'normal', label: '通常' }
+  { value: 'normal', label: '通常' },
+  { value: 'delivered', label: '届いた物資' }
 ]
 
 const mockRequests = [
@@ -293,10 +294,37 @@ const getPriorityText = (priority: string) => {
   return map[priority] || '通常'
 }
 
-const getFilteredRequests = (filter: string) => {
-  if (filter === 'all') return mockRequests
-  return mockRequests.filter(req => req.priority === filter)
-}
+// const getFilteredRequests = (filter: string) => {
+//   if (filter === 'all') return mockRequests
+//   return mockRequests.filter(req => req.priority === filter)
+// }
+  // 届いた物資のダミーデータ
+  const deliveredRequests = [
+    {
+      id: 'del1',
+      itemName: 'ミネラルウォーター',
+      quantity: 80,
+      unit: 'L',
+      deliveredAt: '2024/03/16 10:00',
+      supporter: 'A',
+      supportCount:20
+    },
+    {
+      id: 'del2',
+      itemName: '毛布',
+      quantity: 20,
+      unit: '枚',
+      deliveredAt: '2024/03/16 09:30',
+      supporter: 'B',
+      supportCount: 15
+    }
+  ]
+
+  const getFilteredRequests = (filter: string) => {
+    if (filter === 'all') return mockRequests
+    if (filter === 'delivered') return deliveredRequests
+    return mockRequests.filter(req => req.priority === filter)
+  }
 
 const goBack = () => {
   router.push('/supporter')
@@ -358,7 +386,6 @@ onMounted(() => {
 .donation-btn:hover {
   background: #FF5722;
 }
-
 .content {
   max-width: 1200px;
   margin: 0 auto;
