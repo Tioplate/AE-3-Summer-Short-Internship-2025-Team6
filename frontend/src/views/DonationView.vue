@@ -111,133 +111,61 @@
               ></textarea>
             </div>
 
+              <!-- 支払方法選択 -->
+              <div class="payment-method">
+                <h4>お支払方法の選択</h4>
+                <label class="payment-option">
+                  <input type="radio" value="card" v-model="paymentMethod"> クレジットカード
+                </label>
+                <label class="payment-option">
+                  <input type="radio" value="bank" v-model="paymentMethod"> 銀行振込
+                </label>
+                <label class="payment-option">
+                  <input type="radio" value="paypay" v-model="paymentMethod"> PayPay
+                </label>
+              </div>
+
+              <!-- ポイント利用 -->
+              <div class="points-section">
+                <h4>ポイントを利用する</h4>
+                <label>
+                  <input type="checkbox" v-model="usePoints"> ポイントを利用する（保有: ¥{{ pointsBalance }})
+                </label>
+                <div v-if="usePoints" class="use-points-input">
+                  <label>利用するポイント:</label>
+                  <div>
+                    <input type="number" v-model.number="usedPoints" :max="maxUsedPoints" :min="0">
+                    <span> ポイント</span>
+                  </div>
+
+                  <!-- ポイントと支払いの内訳表示 -->
+                  <div class="points-breakdown">
+                    <div class="break-row">
+                      <span>寄付金額（ベース）:</span>
+                      <span>¥{{ baseAmount.toLocaleString() }}</span>
+                    </div>
+                    <div class="break-row">
+                      <span>利用ポイント:</span>
+                      <span>¥{{ usedPointsClamped.toLocaleString() }}</span>
+                    </div>
+                    <div class="break-row">
+                      <span>支払方法:</span>
+                      <span>{{ paymentMethodLabel }}</span>
+                    </div>
+                    <div class="break-row total">
+                      <strong>最終支払額:</strong>
+                      <strong>¥{{ finalPayable.toLocaleString() }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             <button 
               @click="processDonation"
               :disabled="!canProceedDonation"
               class="donate-btn"
             >
-              ¥{{ getFinalAmount().toLocaleString() }}を寄付する
-            </button>
-          </div>
-
-          <!-- 物資支援 -->
-          <div v-if="selectedMethod === 'goods'" class="goods-form">
-            <h3>物資による支援</h3>
-            
-            <div class="goods-selection">
-              <h4>支援可能な物資を選択</h4>
-              <div class="goods-categories">
-                <button 
-                  v-for="category in goodsCategories" 
-                  :key="category.id"
-                  @click="selectedGoodsCategory = category.id"
-                  :class="['category-btn', { active: selectedGoodsCategory === category.id }]"
-                >
-                  {{ category.name }}
-                </button>
-              </div>
-              
-              <div class="goods-list">
-                <label 
-                  v-for="item in getCurrentGoodsItems()" 
-                  :key="item.id"
-                  class="goods-item"
-                >
-                  <input 
-                    type="checkbox" 
-                    :value="item.id" 
-                    v-model="selectedGoods"
-                  >
-                  <div class="item-info">
-                    <div class="item-name">{{ item.name }}</div>
-                    <div class="item-note">{{ item.note }}</div>
-                  </div>
-                  <div class="quantity-input">
-                    <input 
-                      v-model.number="goodsQuantities[item.id]"
-                      type="number" 
-                      min="1" 
-                      :placeholder="item.unit"
-                    >
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div class="delivery-info">
-              <h4>配送情報</h4>
-              <div class="delivery-note">
-                <p>⚠️ 物資支援は以下の配送先にお送りください：</p>
-                <div class="delivery-address">
-                  <strong>配送先:</strong><br>
-                  〒150-0001<br>
-                  東京都渋谷区神宮前1-1-1<br>
-                  災害支援物資センター<br>
-                  TEL: 03-1234-5678
-                </div>
-                <p>※ 必ず「{{ shelter.name }}宛」と明記してください</p>
-              </div>
-            </div>
-
-            <button 
-              @click="submitGoodsSupport"
-              :disabled="selectedGoods.length === 0"
-              class="support-btn"
-            >
-              物資支援を申し込む
-            </button>
-          </div>
-
-          <!-- ボランティア -->
-          <div v-if="selectedMethod === 'volunteer'" class="volunteer-form">
-            <h3>ボランティア支援</h3>
-            
-            <div class="volunteer-info">
-              <div class="info-card">
-                <h4>現在募集中のボランティア</h4>
-                <div class="volunteer-needs">
-                  <div class="need-item">
-                    <div class="need-title">清掃・整理作業</div>
-                    <div class="need-details">避難所内の清掃、物資の整理整頓</div>
-                    <div class="need-time">平日 9:00-17:00</div>
-                  </div>
-                  <div class="need-item">
-                    <div class="need-title">食事配膳サポート</div>
-                    <div class="need-details">食事の準備、配膳、片付け</div>
-                    <div class="need-time">毎日 6:00-9:00, 11:00-14:00, 17:00-20:00</div>
-                  </div>
-                  <div class="need-item">
-                    <div class="need-title">高齢者・子供のケア</div>
-                    <div class="need-details">話し相手、見守り、遊び相手</div>
-                    <div class="need-time">平日 10:00-16:00</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="volunteer-contact">
-              <h4>ボランティア申し込み</h4>
-              <div class="contact-info">
-                <p>ボランティアをご希望の方は、以下にお電話またはメールでご連絡ください：</p>
-                <div class="contact-details">
-                  <div class="contact-item">
-                    <strong>電話:</strong> 03-1234-5679
-                  </div>
-                  <div class="contact-item">
-                    <strong>メール:</strong> volunteer@disaster-support.go.jp
-                  </div>
-                  <div class="contact-item">
-                    <strong>受付時間:</strong> 9:00-18:00（年中無休）
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button 
-              @click="openVolunteerContact"
-              class="volunteer-btn"
-            >
-              ボランティアに参加する
+              ¥{{ finalPayable.toLocaleString() }}を寄付する（ポイント適用後）
             </button>
           </div>
         </div>
@@ -250,7 +178,8 @@
         <div class="success-icon">✅</div>
         <h3>寄付手続きが完了しました</h3>
         <p>{{ shelter?.name }}への支援ありがとうございます。</p>
-        <p>寄付金は{{ selectedOrganizationName }}を通じて適切に配分されます。</p>
+  <p>支払方法: {{ paymentMethodLabel }}</p>
+  <p>寄付金は{{ selectedOrganizationName }}を通じて適切に配分されます。</p>
         <button @click="closeDonationSuccess" class="modal-btn">OK</button>
       </div>
     </div>
@@ -268,8 +197,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { shelters } from '../stores/shelters'
 
 const router = useRouter()
 const route = useRoute()
@@ -286,10 +216,55 @@ const goodsQuantities = reactive<Record<string, number>>({})
 const showDonationSuccess = ref(false)
 const showGoodsSuccess = ref(false)
 
+// 支払方法
+const paymentMethod = ref('card')
+const paymentMethodLabel = computed(() => {
+  const map: Record<string, string> = {
+    card: 'クレジットカード',
+    bank: '銀行振込',
+    paypay: 'PayPay'
+  }
+  return map[paymentMethod.value] || '未選択'
+})
+
+// ポイント機能（デモ用）
+const pointsBalance = ref(2000) // 保有ポイント（ダミー）
+const usePoints = ref(false)
+const usedPoints = ref<number>(0)
+
+// ベース金額（テンプレート表示用）
+const baseAmount = computed(() => {
+  return getFinalAmount()
+})
+
+// 入力できる最大の利用ポイントは「保有ポイント」と「ベース金額」の小さい方にする
+const maxUsedPoints = computed(() => {
+  return Math.max(0, Math.min(pointsBalance.value, baseAmount.value))
+})
+
+// 常に 0 以上かつ maxUsedPoints 以下の値を返す（表示用）
+const usedPointsClamped = computed(() => {
+  const v = Number(usedPoints.value) || 0
+  return Math.max(0, Math.min(v, maxUsedPoints.value))
+})
+
+// 最終支払額: ポイント適用後（利用ポイントは maxUsedPoints で上限）
+const finalPayable = computed(() => {
+  const base = baseAmount.value
+  const use = usePoints.value ? usedPointsClamped.value : 0
+  return Math.max(base - use, 0)
+})
+
+// 入力された usedPoints を常に 0〜maxUsedPoints の範囲内に保つ
+watch(usedPoints, (val) => {
+  let n = Number(val) || 0
+  if (n < 0) n = 0
+  if (n > maxUsedPoints.value) n = maxUsedPoints.value
+  if (n !== usedPoints.value) usedPoints.value = n
+})
+
 const methods = [
-  { id: 'money', name: '金銭寄付', icon: '💰' },
-  { id: 'goods', name: '物資支援', icon: '📦' },
-  { id: 'volunteer', name: 'ボランティア', icon: '🤝' }
+  { id: 'money', name: '金銭寄付', icon: '💰' }
 ]
 
 const presetAmounts = [1000, 3000, 5000, 10000, 30000, 50000]
@@ -401,8 +376,20 @@ const processDonation = () => {
     amount: getFinalAmount(),
     organization: selectedOrganization.value,
     message: donationMessage.value,
-    shelter: shelter.value?.id
+  shelter: shelter.value?.id,
+  paymentMethod: paymentMethod.value,
+  usedPoints: usePoints.value ? (usedPoints.value || 0) : 0,
+  finalPayable: finalPayable.value
   })
+
+  // 寄付金額をshelters配列のcurrentSupportに加算
+  const targetShelter = shelters.find(s => s.id === shelter.value?.id)
+  console.log('Target shelter:', targetShelter.id)
+  if (targetShelter) {
+    console.log('Before donation, currentSupport:', targetShelter.currentSupport)
+    targetShelter.currentSupport = (targetShelter.currentSupport || 0) + finalPayable.value
+    console.log('After donation, currentSupport:', targetShelter.currentSupport)
+  }
   showDonationSuccess.value = true
 }
 
@@ -433,8 +420,8 @@ const goBack = () => {
 }
 
 onMounted(() => {
-  const shelterId = route.params.id as string
-  shelter.value = (mockShelters as any)[shelterId] || mockShelters.shelter1
+  const shelterId = Number(route.params.id)
+  shelter.value = shelters.find(s => s.id === shelterId) || shelters[0]
 })
 </script>
 
@@ -654,6 +641,11 @@ onMounted(() => {
   font-size: 16px;
 }
 
+.use-points-input input[type="number"] {
+  font-size: 16px;
+  font-weight: 100;
+}
+
 .support-organization {
   margin-bottom: 30px;
 }
@@ -719,6 +711,46 @@ onMounted(() => {
   border-radius: 5px;
   resize: vertical;
   font-family: inherit;
+}
+
+/* ポイント利用欄の余白と内訳フォント調整 */
+.use-points-input {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* 入力欄と内訳の間隔 */
+}
+
+.points-breakdown {
+  margin-top: 6px;
+  padding: 12px;
+  background: #fbfbfc;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  font-size: 16px; /* 全体の基本フォントサイズ */
+  color: #333;
+}
+
+.points-breakdown .break-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.points-breakdown .total {
+  margin-top: 8px;
+  border-top: 1px dashed #e6e6e6;
+  padding-top: 8px;
+  font-size: 18px;
+}
+
+/* モバイル時にフォントを少し小さく、間隔も調整 */
+@media (max-width: 480px) {
+  .points-breakdown {
+    font-size: 15px;
+    padding: 10px;
+  }
 }
 
 .donate-btn,
