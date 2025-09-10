@@ -141,4 +141,14 @@ public class ShelterGoodsController {
     public ShelterGoods getByGoodsId(@RequestParam("goodsId") String goodsId) {
         return shelterGoodsService.selectByGoodsId(goodsId);
     }
+
+    @PostMapping("/updateNumberNow")
+    public int updateNumberNow(@RequestParam String goodsId, @RequestParam Integer numberNow) {
+        return shelterGoodsService.updateNumberNow(goodsId, numberNow);
+    }
+
+    @PostMapping("/updateNumberReq")
+    public int updateNumberReq(@RequestParam String goodsId, @RequestParam Integer numberReq) {
+        return shelterGoodsService.updateNumberReq(goodsId, numberReq);
+    }
 }

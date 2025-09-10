@@ -23,6 +23,14 @@ public class ShelterGoodsService {
         return shelterGoodsMapper.update(shelterGoods);
     }
 
+    public int updateNumberNow(String goodsId, Integer numberNow) {
+        return shelterGoodsMapper.updateNumberNow(goodsId, numberNow);
+    }
+
+    public int updateNumberReq(String goodsId, Integer numberReq) {
+        return shelterGoodsMapper.updateNumberReq(goodsId, numberReq);
+    }
+
     public List<ShelterGoods> selectByShelterId(String shelterId) {
         return shelterGoodsMapper.selectByShelterId(shelterId);
     }

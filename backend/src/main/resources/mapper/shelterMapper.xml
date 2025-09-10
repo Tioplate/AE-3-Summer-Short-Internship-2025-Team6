@@ -23,6 +23,21 @@
             money_req = #{moneyReq}
         WHERE shelter_id = #{shelterId}
     </update>
+    <update id="updateCurrentCapacity" parameterType="map">
+        UPDATE shelter
+        SET shelter_cur = #{shelterCur}
+        WHERE shelter_id = #{shelterId}
+    </update>
+    <update id="updateCurrentMoney" parameterType="map">
+        UPDATE shelter
+        SET money_cur = #{moneyCur}
+        WHERE shelter_id = #{shelterId}
+    </update>
+    <update id="updateRequestedMoney" parameterType="map">
+        UPDATE shelter
+        SET money_req = #{moneyReq}
+        WHERE shelter_id = #{shelterId}
+    </update>
 
     <select id="selectAll" resultType="com.example.team6_backend.entity.Shelter">
         SELECT * FROM shelter

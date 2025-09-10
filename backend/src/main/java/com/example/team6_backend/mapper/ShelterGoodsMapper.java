@@ -14,6 +14,10 @@ public interface ShelterGoodsMapper {
 
     int update(ShelterGoods shelterGoods);
 
+    int updateNumberNow(@Param("goodsId") String goodsId, @Param("numberNow") Integer numberNow);
+
+    int updateNumberReq(@Param("goodsId") String goodsId, @Param("numberReq") Integer numberReq);
+
     List<ShelterGoods> selectByShelterId(@Param("shelterId") String shelterId);
 
     ShelterGoods selectByGoodsId(@Param("goodsId") String goodsId);

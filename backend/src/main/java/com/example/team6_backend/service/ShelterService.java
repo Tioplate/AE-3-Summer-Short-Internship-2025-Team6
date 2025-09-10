@@ -28,6 +28,18 @@ public class ShelterService {
         return shelterMapper.selectAll();
     }
 
+    public int updateCurrentCapacity(String shelterId, Integer shelterCur) {
+        return shelterMapper.updateCurrentCapacity(shelterId, shelterCur);
+    }
+
+    public int updateCurrentMoney(String shelterId, Integer moneyCur) {
+        return shelterMapper.updateCurrentMoney(shelterId, moneyCur);
+    }
+
+    public int updateRequestedMoney(String shelterId, Integer moneyReq) {
+        return shelterMapper.updateRequestedMoney(shelterId, moneyReq);
+    }
+
     public Shelter selectById(String shelterId) {
         return shelterMapper.selectById(shelterId);
     }

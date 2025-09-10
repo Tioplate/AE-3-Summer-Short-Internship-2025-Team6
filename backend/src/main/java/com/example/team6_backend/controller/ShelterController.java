@@ -30,6 +30,21 @@ public class ShelterController {
         return shelterService.update(shelter);
     }
 
+    @PostMapping("/updateCurrentCapacity")
+    public int updateCurrentCapacity(@RequestParam String shelterId, @RequestParam Integer shelterCur) {
+        return shelterService.updateCurrentCapacity(shelterId, shelterCur);
+    }
+
+    @PostMapping("/updateCurrentMoney")
+    public int updateCurrentMoney(@RequestParam String shelterId, @RequestParam Integer moneyCur) {
+        return shelterService.updateCurrentMoney(shelterId, moneyCur);
+    }
+
+    @PostMapping("/updateRequestedMoney")
+    public int updateRequestedMoney(@RequestParam String shelterId, @RequestParam Integer moneyReq) {
+        return shelterService.updateRequestedMoney(shelterId, moneyReq);
+    }
+
     @GetMapping("/list")
     public List<Shelter> selectAll() {
         return shelterService.selectAll();

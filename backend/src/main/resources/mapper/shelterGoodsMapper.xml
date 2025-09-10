@@ -18,6 +18,16 @@
         comment = #{comment}
         WHERE goods_id = #{goodsId};
     </update>
+    <update id="updateNumberNow" parameterType="map">
+        UPDATE shelter_goods
+        SET number_now = #{numberNow}
+        WHERE goods_id = #{goodsId};
+    </update>
+    <update id="updateNumberReq" parameterType="map">
+        UPDATE shelter_goods
+        SET number_req = #{numberReq}
+        WHERE goods_id = #{goodsId};
+    </update>
     <select id="selectByShelterId" parameterType="String" resultType="com.example.team6_backend.entity.ShelterGoods">
         SELECT * FROM shelter_goods WHERE shelter_id = #{shelterId};
     </select>
