@@ -17,7 +17,7 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-    @PostMapping
+    @PostMapping("/add")
     public ApiResponse<String> add(@RequestBody Comment comment) {
         // 检查comment是否为空或只包含空白字符
         if (comment.getComment() == null || comment.getComment().trim().isEmpty()) {
@@ -31,7 +31,7 @@ public class CommentController {
         return ApiResponse.fail(500, "创建失败");
     }
 
-    @GetMapping
+    @GetMapping("/list")
     public ApiResponse<List<Comment>> list(@RequestParam("shelterId") String shelterId) {
         return ApiResponse.success(commentService.listByShelter(shelterId));
     }
