@@ -21,11 +21,12 @@ public class UserController {
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public ApiResponse<String> add(@RequestBody User user) {
+        user.setPermission(0); // デフォルトの権限を設定
         int result = userService.addUser(user);
         if (result == -1) {
-            return ApiResponse.fail(40001, "userId 已存在");
+            return ApiResponse.fail(40001, "userIdは既に存在しています");
         }
-        return ApiResponse.successMessage("created");
+        return ApiResponse.successMessage("ユーザー登録成功");
     }
 
 }

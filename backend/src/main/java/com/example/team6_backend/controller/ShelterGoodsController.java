@@ -1,5 +1,6 @@
 package com.example.team6_backend.controller;
 
+import com.example.team6_backend.common.GenreFinder;
 import com.example.team6_backend.entity.ItemInfo;
 import com.example.team6_backend.entity.ShelterGoods;
 import com.example.team6_backend.service.HttpService;
@@ -23,8 +24,10 @@ public class ShelterGoodsController {
 
     @Value("${rakuten.application-id}")
     String applicationId;
-    @Value("${rakuten.api-url}")
-    String apiUrl;
+    @Value("${rakuten.item-api-url}")
+    String itemApiUrl;
+    @Value("${rakuten.genre-api-url}")
+    String genreApiUrl;
 
     public ShelterGoodsController(ShelterGoodsService shelterGoodsService) {
         this.shelterGoodsService = shelterGoodsService;
@@ -37,11 +40,11 @@ public class ShelterGoodsController {
                       @RequestParam(value = "comment", required = false) String comment) throws JsonProcessingException { //@RequestParam注解可用于当参数名称与前端传值名称不同时映射
         // 检查数量是否为0或负数，非法则静默返回0
         if (numberNow == null || numberReq == null || numberNow <= 0 || numberReq <= 0) {
-            return 0;
+            return -1;
         }
         
         StringBuffer url = new StringBuffer();
-        url.append(apiUrl)
+        url.append(itemApiUrl)
                 .append("?")
                 .append("applicationId=")
                 .append(applicationId)
@@ -71,7 +74,7 @@ public class ShelterGoodsController {
             }
         }
         if (itemList.isEmpty() || itemList.get(0).getItemName() == null || itemList.get(0).getItemName().trim().isEmpty()) {
-            return 0;
+            return -1;
         }
         ShelterGoods shelterGoods = new ShelterGoods();
         shelterGoods.setGoodsId(itemCode);
@@ -87,7 +90,7 @@ public class ShelterGoodsController {
     @RequestMapping(value = "/search", method = RequestMethod.GET)
     public List<ItemInfo> search(String keyword, int page, int pageSize) throws JsonProcessingException {
         StringBuffer url = new StringBuffer();
-        url.append(apiUrl)
+        url.append(itemApiUrl)
                 .append("?")
                 .append("applicationId=")
                 .append(applicationId)
@@ -124,7 +127,25 @@ public class ShelterGoodsController {
         }
         return itemList;
     }
-
+    @GetMapping("/searchGenreId")
+    public String searchGenreId(String genreId) throws JsonProcessingException {
+        StringBuffer url = new StringBuffer();
+        url.append(genreApiUrl)
+                .append("?")
+                .append("applicationId=")
+                .append(applicationId)
+                .append("&")
+                .append("genreId=")
+                .append(genreId);
+        String retJSON = httpService.sendGetRequest(url.toString());
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(retJSON);
+        String genreName = GenreFinder.findGenreName(root, Integer.parseInt(genreId));
+        if (genreName != null) {
+            return genreName;
+        }
+        return "Not Found";
+    }
 
     // 删除
     @DeleteMapping("/delete")

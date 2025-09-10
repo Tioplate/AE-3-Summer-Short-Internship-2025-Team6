@@ -1,2 +1,5 @@
 frontendフォルダで、Terminalを開き、以下のコマンドを実行してください。
 npm install axios
+
+詳細な情報は、以下のURLを参照してください。
+https://axios-http.com/
