@@ -19,7 +19,12 @@ public class UserGoodsService {
         userGoods.setReqId(UUID.randomUUID().toString());
         return userGoodsMapper.insert(userGoods);
     }
-
+    public int delete(String reqId) {
+        return userGoodsMapper.deleteByReqId(reqId);
+    }
+    public int updateNumber(UserGoods userGoods) {
+        return userGoodsMapper.updateNumber(userGoods);
+    }
     public List<UserGoods> listByUser(String userId) {
         return userGoodsMapper.selectByUserId(userId);
     }
