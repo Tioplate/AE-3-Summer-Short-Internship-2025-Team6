@@ -85,7 +85,7 @@
         <!-- カテゴリ選択モーダル -->
         <div v-if="showCategoryModal" class="category-modal">
           <div class="modal-content">
-            <h3>カテゴリを選択してください</h3>
+            <h3>検索結果を選択してください</h3>
             <ul>
               <li v-for="cat in modalCategories" :key="cat" @click="selectCategory(cat)" class="modal-category">
                 {{ cat }}
@@ -126,9 +126,8 @@ const itemRequests = reactive<Record<string, number>>({})
 
 // 疑似キーワード→カテゴリデータ
 const keywordCategoryMap: Record<string, string[]> = {
-  '水': ['飲料水', 'ミネラルウォーター', '炭酸水'],
-  'タオル': ['バスタオル', 'フェイスタオル', 'スポーツタオル'],
-  'ご飯': ['白米', 'おにぎり', 'レトルトご飯'],
+  'ティッシュ': ['ボックスティッシュ', 'ポケットティッシュ', 'ウェットティッシュ'],
+  'ご飯': ['白米', 'おにぎり', 'レトルトご飯', 'お粥'],
   'マスク': ['不織布マスク', '布マスク', '子供用マスク'],
 }
 

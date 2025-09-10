@@ -8,10 +8,9 @@
     <div class="content">
       <div class="request-list">
         <div v-for="request in requests" :key="request.id" class="request-card">
-          <h3>リクエストID: {{ request.id }}</h3>
           <p>避難所: {{ request.shelterName }}</p>
           <p>要請日: {{ request.requestDate }}</p>
-          <p v-if="request.category">選択カテゴリ: {{ request.category }}</p>
+          <p v-if="request.category">検索結果選択: {{ request.category }}</p>
           <ul>
             <li v-for="item in request.items" :key="item.id">
               {{ item.name }} - {{ item.quantity }}個
@@ -33,18 +32,26 @@ const router = useRouter();
 // 仮置きのデータ
 const requests = ref([
   {
-    id: '1',
     shelterName: '中央小学校',
-    requestDate: '2025-09-09',
-    category: '飲料水', // カテゴリ選択あり
+    requestDate: '2025-09-12',
+    category: '不織布マスク',
     items: [
       { id: 'water', name: 'ミネラルウォーター', quantity: 2 },
-      { id: 'rice', name: 'おにぎり', quantity: 1 },
+      { id: 'rice', name: 'おにぎり・弁当', quantity: 1 },
     ],
     freeRequest: '特になし',
   },
   {
-    id: '2',
+    shelterName: '中央小学校',
+    requestDate: '2025-09-09',
+    category: 'お粥', // カテゴリ選択あり
+    items: [
+      { id: 'water', name: 'ミネラルウォーター', quantity: 2 },
+      { id: 'rice', name: 'おにぎり・弁当', quantity: 1 },
+    ],
+    freeRequest: '特になし',
+  },
+  {
     shelterName: '市民体育館',
     requestDate: '2025-09-08',
     items: [
@@ -54,22 +61,17 @@ const requests = ref([
     freeRequest: 'タオル多めに希望',
   },
   {
-    id: '3',
     shelterName: '総合公園体育館',
     requestDate: '2025-09-07',
     category: 'レトルトご飯', // カテゴリ選択あり
-    items: [
-      { id: 'instant', name: 'レトルトご飯', quantity: 5 },
-    ],
     freeRequest: 'アレルギー対応のレトルト希望',
   },
   {
-    id: '4',
     shelterName: '中央小学校',
     requestDate: '2025-09-06',
     items: [
-      { id: 'mask', name: 'マスク', quantity: 10 },
-      { id: 'sanitizer', name: '消毒液', quantity: 2 },
+      { id: 'mask', name: 'おむつ', quantity: 10 },
+      { id: 'sanitizer', name: '消毒用アルコール', quantity: 2 },
     ],
     freeRequest: '子供用マスク希望',
   },
