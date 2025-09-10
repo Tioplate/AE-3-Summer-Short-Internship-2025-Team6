@@ -15,7 +15,6 @@
       
       <div class="control-group">
         <button @click="refreshMap" class="refresh-btn">🔄 マップ更新</button>
-        <button @click="exportData" class="export-btn">📊 データエクスポート</button>
       </div>
     </div>
 
@@ -132,10 +131,6 @@ const refreshMap = () => {
   }
 }
 
-const exportData = () => {
-  console.log('Exporting shelter data...')
-  alert('データをエクスポートしました')
-}
 
 onMounted(() => {
   setTimeout(initMap, 100)
@@ -191,7 +186,7 @@ onUnmounted(() => {
   font-size: 14px;
 }
 
-.refresh-btn, .export-btn {
+.refresh-btn {
   padding: 8px 16px;
   border: 1px solid #007bff;
   background: #007bff;
@@ -202,19 +197,9 @@ onUnmounted(() => {
   transition: all 0.3s ease;
 }
 
-.refresh-btn:hover, .export-btn:hover {
+.refresh-btn:hover {
   background: #0056b3;
   border-color: #0056b3;
-}
-
-.export-btn {
-  background: #28a745;
-  border-color: #28a745;
-}
-
-.export-btn:hover {
-  background: #218838;
-  border-color: #218838;
 }
 
 .map-wrapper {

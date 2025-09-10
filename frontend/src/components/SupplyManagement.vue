@@ -108,27 +108,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useSuppliesStore, type SupplyRequest, type ShelterRequest } from '@/stores/supplies'
 
-interface SupplyRequest {
-  id: number
-  itemName: string
-  quantity: number
-  unit: string
-  status: 'pending' | 'approved' | 'delivered'
-  priority: string
-  reason: string
-  notes?: string
-}
-
-interface ShelterRequest {
-  id: number
-  name: string
-  manager: string
-  contact: string
-  urgency: 'high' | 'medium' | 'low'
-  requestDate: string
-  requests: SupplyRequest[]
-}
+const suppliesStore = useSuppliesStore()
 
 const statusFilter = ref('all')
 const showDetailModal = ref(false)
@@ -144,99 +126,102 @@ const selectedRequest = ref<SupplyRequest>({
   notes: ''
 })
 
-const shelters = ref<ShelterRequest[]>([
-  {
-    id: 1,
-    name: '中央小学校',
-    manager: '田中太郎',
-    contact: '090-1234-5678',
-    urgency: 'high',
-    requestDate: '2024-01-15 14:30',
-    requests: [
-      {
-        id: 101,
-        itemName: '非常用パン',
-        quantity: 200,
-        unit: '個',
-        status: 'pending',
-        priority: '緊急',
-        reason: '避難者数が増加し、食料が不足しています'
-      },
-      {
-        id: 102,
-        itemName: 'ペットボトル水',
-        quantity: 500,
-        unit: '本',
-        status: 'approved',
-        priority: '緊急',
-        reason: '水道が復旧しておらず、飲料水が必要です'
-      },
-      {
-        id: 103,
-        itemName: '毛布',
-        quantity: 100,
-        unit: '枚',
-        status: 'delivered',
-        priority: '普通',
-        reason: '夜間の冷え込みが厳しく、暖房器具が不足'
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: '市民体育館',
-    manager: '佐藤花子',
-    contact: '090-2345-6789',
-    urgency: 'medium',
-    requestDate: '2024-01-15 16:45',
-    requests: [
-      {
-        id: 201,
-        itemName: 'マスク',
-        quantity: 300,
-        unit: '枚',
-        status: 'pending',
-        priority: '普通',
-        reason: '感染症対策のため必要です'
-      },
-      {
-        id: 202,
-        itemName: '消毒用アルコール',
-        quantity: 10,
-        unit: '本',
-        status: 'pending',
-        priority: '普通',
-        reason: '手指消毒用として使用します'
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: '北部コミュニティセンター',
-    manager: '鈴木一郎',
-    contact: '090-3456-7890',
-    urgency: 'low',
-    requestDate: '2024-01-16 09:15',
-    requests: [
-      {
-        id: 301,
-        itemName: '紙おむつ',
-        quantity: 50,
-        unit: 'パック',
-        status: 'approved',
-        priority: '普通',
-        reason: '乳幼児の避難者がいるため必要です',
-        notes: 'Mサイズ中心でお願いします'
-      }
-    ]
-  }
-])
+// 初期データをストアに設定
+if (suppliesStore.shelters.length === 0) {
+  suppliesStore.shelters.push(
+    {
+      id: 1,
+      name: '中央小学校',
+      manager: '田中太郎',
+      contact: '090-1234-5678',
+      urgency: 'high',
+      requestDate: '2024-01-15 14:30',
+      requests: [
+        {
+          id: 101,
+          itemName: '非常用パン',
+          quantity: 200,
+          unit: '個',
+          status: 'pending',
+          priority: '緊急',
+          reason: '避難者数が増加し、食料が不足しています'
+        },
+        {
+          id: 102,
+          itemName: 'ペットボトル水',
+          quantity: 500,
+          unit: '本',
+          status: 'approved',
+          priority: '緊急',
+          reason: '水道が復旧しておらず、飲料水が必要です'
+        },
+        {
+          id: 103,
+          itemName: '毛布',
+          quantity: 100,
+          unit: '枚',
+          status: 'delivered',
+          priority: '普通',
+          reason: '夜間の冷え込みが厳しく、暖房器具が不足'
+        }
+      ]
+    },
+    {
+      id: 2,
+      name: '市民体育館',
+      manager: '佐藤花子',
+      contact: '090-2345-6789',
+      urgency: 'medium',
+      requestDate: '2024-01-15 16:45',
+      requests: [
+        {
+          id: 201,
+          itemName: 'マスク',
+          quantity: 300,
+          unit: '枚',
+          status: 'pending',
+          priority: '普通',
+          reason: '感染症対策のため必要です'
+        },
+        {
+          id: 202,
+          itemName: '消毒用アルコール',
+          quantity: 10,
+          unit: '本',
+          status: 'pending',
+          priority: '普通',
+          reason: '手指消毒用として使用します'
+        }
+      ]
+    },
+    {
+      id: 3,
+      name: '北部コミュニティセンター',
+      manager: '鈴木一郎',
+      contact: '090-3456-7890',
+      urgency: 'low',
+      requestDate: '2024-01-16 09:15',
+      requests: [
+        {
+          id: 301,
+          itemName: '紙おむつ',
+          quantity: 50,
+          unit: 'パック',
+          status: 'approved',
+          priority: '普通',
+          reason: '乳幼児の避難者がいるため必要です',
+          notes: 'Mサイズ中心でお願いします'
+        }
+      ]
+    }
+  )
+}
 
 const filteredShelters = computed(() => {
   if (statusFilter.value === 'all') {
-    return shelters.value
+    return suppliesStore.shelters
   }
-  return shelters.value.filter(shelter => 
+  return suppliesStore.shelters.filter(shelter => 
     shelter.requests.some(request => request.status === statusFilter.value)
   ).map(shelter => ({
     ...shelter,
@@ -267,23 +252,11 @@ const formatDate = (dateString: string) => {
 }
 
 const approveRequest = (shelterId: number, requestId: number) => {
-  const shelter = shelters.value.find(s => s.id === shelterId)
-  if (shelter) {
-    const request = shelter.requests.find(r => r.id === requestId)
-    if (request) {
-      request.status = 'approved'
-    }
-  }
+  suppliesStore.approveRequest(shelterId, requestId)
 }
 
 const markDelivered = (shelterId: number, requestId: number) => {
-  const shelter = shelters.value.find(s => s.id === shelterId)
-  if (shelter) {
-    const request = shelter.requests.find(r => r.id === requestId)
-    if (request) {
-      request.status = 'delivered'
-    }
-  }
+  suppliesStore.markDelivered(shelterId, requestId)
 }
 
 const viewRequestDetail = (request: SupplyRequest) => {
