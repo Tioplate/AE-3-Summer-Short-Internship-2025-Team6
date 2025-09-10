@@ -2,7 +2,7 @@
   <div class="evacuee-container">
     <header class="header">
       <h1>物資要請投稿</h1>
-      <button @click="goBack" class="back-btn">← ログイン画面に戻る</button>
+      <button @click="goToMyRequests" class="back-btn">✉ 送信済リクエストを見る</button>
       <button @click="goToMapView" class="mapview-btn map-icon-btn">支援状況を見る</button>
     </header>
 
@@ -239,6 +239,7 @@ const submitRequest = () => {
 const goBack = () => {
   router.push('/')
 }
+
 const goToMapView = () => {
   router.push('/evacueemapview')
 }
