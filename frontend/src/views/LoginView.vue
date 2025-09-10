@@ -102,44 +102,49 @@ const login = async (apiEndpoint: string, redirectPath: string) => {
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  padding: 40px;
 }
 
 .login-card {
   background: white;
-  border-radius: 12px;
-  padding: 40px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  width: 100%;
+  border-radius: 16px;
+  padding: 60px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  width: 800px;
+  max-width: 90vw;
   text-align: center;
 }
 
 h1 {
   color: #333;
-  margin-bottom: 10px;
-  font-size: 24px;
+  margin-bottom: 15px;
+  font-size: 32px;
   font-weight: 600;
 }
 
 .signup-link {
   color: #666;
-  margin-bottom: 30px;
-  font-size: 18px;
+  margin-bottom: 40px;
+  font-size: 16px;
   font-weight: 400;
   border: none;
   background: none;
   cursor: pointer;
+  text-decoration: underline;
 }
 
 .login-form {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 30px;
+  flex-direction: row;
+  gap: 20px;
+  margin-bottom: 40px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .login-input {
+  flex: 1;
   padding: 15px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -154,9 +159,39 @@ h3 {
 }
 
 .button-group {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .button-group {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+  }
+
+  .user-type-btn {
+    flex-direction: column;
+    text-align: center;
+    padding: 30px 20px;
+    min-height: 160px;
+  }
+
+  .btn-icon {
+    font-size: 48px;
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+
+  .btn-title {
+    font-size: 16px;
+  }
+
+  .btn-subtitle {
+    font-size: 13px;
+  }
 }
 
 .user-type-btn {
