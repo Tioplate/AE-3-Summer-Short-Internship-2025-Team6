@@ -8,4 +8,6 @@ import java.util.List;
 public interface UserGoodsMapper {
     int insert(UserGoods userGoods);
     List<UserGoods> selectByUserId(String userId);
+    int deleteByReqId(String reqId); // 根据主键删除
+    int updateNumber(UserGoods userGoods);
 }

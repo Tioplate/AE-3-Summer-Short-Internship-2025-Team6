@@ -14,4 +14,13 @@
         WHERE user_id = #{userId}
         ORDER BY req_id DESC;
     </select>
+    <delete id="deleteByReqId" parameterType="String">
+        DELETE FROM user_goods
+        WHERE req_id = #{reqId};
+    </delete>
+    <update id="updateNumber" parameterType="com.example.team6_backend.entity.UserGoods">
+        UPDATE user_goods
+        SET number = #{number}
+            WHERE req_id = #{reqId};
+    </update>
 </mapper>
