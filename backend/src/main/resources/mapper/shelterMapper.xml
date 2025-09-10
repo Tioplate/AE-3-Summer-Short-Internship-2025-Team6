@@ -3,7 +3,32 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.team6_backend.mapper.ShelterMapper">
-    <select id="selectAll" resultType="com.example.team6_backend.entity.Comment">
-        SELECT * FROM comment
+    <insert id="insert" parameterType="com.example.team6_backend.entity.Shelter">
+        INSERT INTO shelter (shelter_id, shelter_name, address, admin_id, shelter_cap, shelter_cur, money_cur, money_req)
+        VALUES (#{shelterId}, #{shelterName}, #{address}, #{adminId}, #{shelterCap}, #{shelterCur}, #{moneyCur}, #{moneyReq})
+    </insert>
+
+    <delete id="deleteById" parameterType="string">
+        DELETE FROM shelter WHERE shelter_id = #{shelterId}
+    </delete>
+
+    <update id="update" parameterType="com.example.team6_backend.entity.Shelter">
+        UPDATE shelter
+        SET shelter_name = #{shelterName},
+            address = #{address},
+            admin_id = #{adminId},
+            shelter_cap = #{shelterCap},
+            shelter_cur = #{shelterCur},
+            money_cur = #{moneyCur},
+            money_req = #{moneyReq}
+        WHERE shelter_id = #{shelterId}
+    </update>
+
+    <select id="selectAll" resultType="com.example.team6_backend.entity.Shelter">
+        SELECT * FROM shelter
+    </select>
+
+    <select id="selectById" parameterType="string" resultType="com.example.team6_backend.entity.Shelter">
+        SELECT * FROM shelter WHERE shelter_id = #{shelterId}
     </select>
 </mapper>
