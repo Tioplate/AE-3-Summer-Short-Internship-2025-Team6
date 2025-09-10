@@ -53,10 +53,7 @@ const signUp = async () => {
     username: username.value,
     password: password.value,
     email: email.value,
-    // roleはバックエンドでデフォルト値が設定されるか、
-    // もしくはここで選択させるUIを追加する必要があります。
-    // 仮で'user'としておきます。
-    role: 'user'
+
   };
 
   try {
