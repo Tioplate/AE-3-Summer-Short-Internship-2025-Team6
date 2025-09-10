@@ -51,6 +51,7 @@ public class ShelterGoodsController {
                 .append("&")
                 .append("itemCode=")
                 .append(itemCode);
+
         String retJSON = httpService.sendGetRequest(url.toString());
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(retJSON);
