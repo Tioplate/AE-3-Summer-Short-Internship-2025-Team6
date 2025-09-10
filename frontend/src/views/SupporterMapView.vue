@@ -143,11 +143,7 @@ const getProgressUrgencyText = (progress: number) => {
 }
 
 
-const getMarkerColorByProgress = (progress: number) => {
-  if (progress <= 30) return '#e53935'
-  if (progress <= 60) return '#fbc02d'
-  return '#43a047'
-}
+
 
 // --- 価格取得ロジック切り替え ---
 
@@ -202,30 +198,44 @@ const initMap = () => {
 
   shelters.forEach(shelter => {
     const progress = getProgress(shelter.id)
-    const color = getMarkerColorByProgress(progress)
+    const color = getProgressColor(progress) // 進捗率に応じた色
     const markerHtml = `
-      <div style="
-        background-color: ${color};
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 12px;
-      ">
-        ${shelter.urgentRequests}
-      </div>
+  <div style="
+    position: relative;
+    width: 25px;
+    height: 35px;
+    background: transparent;
+  ">
+    <div style="
+      width: 25px;
+      height: 25px;
+      background: ${color};
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+    "></div>
+    <div style="
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 12px solid ${color};
+    "></div>
+  </div>
     `
     
     const customIcon = L.divIcon({
       html: markerHtml,
-      iconSize: [25, 25],
-      iconAnchor: [12, 12]
+      iconSize: [0, 0],      // ← 高さ15pxに変更
+      iconAnchor: [12, 35]     // ← 下端中央に変更
     })
     
     const marker = L.marker([shelter.lat, shelter.lng], { icon: customIcon }).addTo(map)
@@ -244,7 +254,7 @@ const initMap = () => {
         ">
           <div class="progress" style="
             height: 100%;
-            background: #76c7c0;
+            background: ${color};
             width: ${progress}%;
             transition: width 0.4s;
           "></div>
