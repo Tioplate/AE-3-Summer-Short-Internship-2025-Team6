@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-card">
       <h1>災害物資支援プラットフォーム</h1>
-      <button class="signup-link">登録はこちら</button>
+      <button @click="goToSignUp" class="signup-link">登録はこちら</button>
 
       <div class="login-form">
         <input v-model="email" type="email" placeholder="メールアドレス" class="login-input">
@@ -61,6 +61,10 @@ const loginAsSupporter = async () => {
 
 const loginAsAdmin = async () => {
   await login('/api/login/admin', '/admin');
+}
+
+const goToSignUp = () => {
+  router.push('/signup');
 }
 
 
