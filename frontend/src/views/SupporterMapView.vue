@@ -36,8 +36,14 @@
         >
           <div class="shelter-header">
             <h3>{{ shelter.name }}</h3>
-            <span class="status-badge" :class="`status-${shelter.urgency}`">
-              {{ getUrgencyText(shelter.urgency) }}
+            <span 
+              class="status-badge"
+              :style="{
+                background: getProgressColor(getProgress(shelter.id)),
+                color: '#fff'
+              }"
+            >
+              {{ getProgressUrgencyText(getProgress(shelter.id)) }}
             </span>
           </div>
           
@@ -45,14 +51,6 @@
             <div class="info-item">
               <span class="label">収容人数:</span>
               <span class="value">{{ shelter.currentCapacity }} / {{ shelter.maxCapacity }}人</span>
-            </div>
-            <div class="info-item">
-              <span class="label">直近の要請:</span>
-              <span class="value">{{ shelter.recentRequests }}件</span>
-            </div>
-            <div class="info-item">
-              <span class="label">緊急度の高い要請:</span>
-              <span class="value urgent-count">{{ shelter.urgentRequests }}件</span>
             </div>
             <!-- 必要支援金額と進捗ゲージ -->
             <div class="info-item">
@@ -64,7 +62,14 @@
               <span class="value">¥{{ shelter.currentSupport }} / ¥{{ getNeededAmount(shelter.id) }}</span>
             </div>
             <div class="progress-bar">
-              <div class="progress" :style="{ width: getProgress(shelter.id) + '%' }"></div>
+              <!-- <div class="progress" :style="{ width: getProgress(shelter.id) + '%' }"></div> -->
+              <div 
+                class="progress"
+                :style="{
+                  width: getProgress(shelter.id) + '%',
+                  background: getProgressColor(getProgress(shelter.id))
+                }"
+              ></div>
             </div>
             <div class="info-item">
               <span class="label">進捗率:</span>
@@ -95,6 +100,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import L from 'leaflet'
@@ -122,67 +128,25 @@ const items = [
   { name: '乾電池', price: 200 }
 ]
 
-// const shelters = [
-//   {
-//     id: 1,
-//     name: '中央小学校',
-//     lat: 35.6762,
-//     lng: 139.6503,
-//     urgency: 'high',
-//     currentCapacity: 180,
-//     maxCapacity: 200,
-//     recentRequests: 15,
-//     urgentRequests: 8,
-//     topRequests: ['ミネラルウォーター', '離乳食', '毛布', '常備薬'],
-//     requestQuantities: { 'ミネラルウォーター': 50, '離乳食': 20, '毛布': 30, '常備薬': 10 },
-//     currentSupport: 12000
-//   },
-//   {
-//     id: 2,
-//     name: '市民体育館',
-//     lat: 35.6712,
-//     lng: 139.6533,
-//     urgency: 'medium',
-//     currentCapacity: 90,
-//     maxCapacity: 150,
-//     recentRequests: 8,
-//     urgentRequests: 3,
-//     topRequests: ['おにぎり', 'タオル', '乾電池'],
-//     requestQuantities: { 'おにぎり': 40, 'タオル': 25, '乾電池': 30 },
-//     currentSupport: 8000
-//   },
-//   {
-//     id: 3,
-//     name: '総合公園体育館',
-//     lat: 35.6792,
-//     lng: 139.6473,
-//     urgency: 'low',
-//     currentCapacity: 45,
-//     maxCapacity: 100,
-//     recentRequests: 4,
-//     urgentRequests: 1,
-//     topRequests: ['パン', 'マスク'],
-//     requestQuantities: { 'パン': 30, 'マスク': 20 },
-//     currentSupport: 5000
-//   }
-// ]
-
-const getUrgencyText = (urgency: string) => {
-  const map: Record<string, string> = {
-    high: '緊急支援必要',
-    medium: '支援必要',
-    low: '状況良好'
-  }
-  return map[urgency] || '状況良好'
+// 進捗率に応じた色を返す関数
+const getProgressColor = (progress: number) => {
+  if (progress <= 30) return '#e53935'; // 赤
+  if (progress <= 60) return '#fbc02d'; // 黄
+  return '#43a047'; // 緑
 }
 
-const getMarkerColor = (urgency: string) => {
-  const colors: Record<string, string> = {
-    high: 'red',
-    medium: 'orange',
-    low: 'green'
-  }
-  return colors[urgency] || 'green'
+
+const getProgressUrgencyText = (progress: number) => {
+  if (progress <= 30) return '緊急支援必要'; // 赤
+  if (progress <= 60) return '支援必要';     // 黄
+  return '状況良好';                        // 緑
+}
+
+
+const getMarkerColorByProgress = (progress: number) => {
+  if (progress <= 30) return '#e53935'
+  if (progress <= 60) return '#fbc02d'
+  return '#43a047'
 }
 
 // --- 価格取得ロジック切り替え ---
@@ -192,28 +156,6 @@ const getItemPrice = (name: string) => {
   const item = items.find(i => i.name === name)
   return item ? item.price : 0
 }
-
-// ▼API版（楽天APIから価格取得）
-// async function getItemPrice(name: string): Promise<number | null> {
-//   const applicationId = '0ac0231b12c673522dee331f7b65b9f85505603f' // 楽天APIキー
-//   const url = 'https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601'
-//   const params = {
-//     applicationId: applicationId,
-//     keyword: name,
-//     sort: '+itemPrice',
-//     hits: 10,
-//   }
-//   try {
-//     const res = await axios.get(url, { params })
-//     const items = res.data.Items
-//     if (!items || items.length === 0) return 0
-//     const price = Math.min(...items.map((i: any) => i.Item.itemPrice))
-//     return price != null && !isNaN(price) ? price : 0
-//   } catch (e) {
-//     console.error('楽天APIエラー:', e)
-//     return 0
-//   }
-// }
 
 
 // 必要支援金額を計算する関数
@@ -237,7 +179,8 @@ const getProgress = (shelterID: number): number => {
   if (!shelter || typeof shelter.currentSupport !== 'number') return 0
   const needed = getNeededAmount(shelterID)
   if (needed === 0) return 0
-  return Math.min((shelter.currentSupport / needed) * 100, 100)
+  const progress = Math.min((shelter.currentSupport / needed) * 100, 100)
+  return progress
 }
 
 const viewShelterDetail = (shelterId: string) => {
@@ -258,7 +201,8 @@ const initMap = () => {
   }).addTo(map)
 
   shelters.forEach(shelter => {
-    const color = getMarkerColor(shelter.urgency)
+    const progress = getProgress(shelter.id)
+    const color = getMarkerColorByProgress(progress)
     const markerHtml = `
       <div style="
         background-color: ${color};
@@ -290,7 +234,6 @@ const initMap = () => {
       <div>
         <h3>${shelter.name}</h3>
         <p><strong>収容:</strong> ${shelter.currentCapacity}/${shelter.maxCapacity}人</p>
-        <p><strong>緊急要請:</strong> ${shelter.urgentRequests}件</p>
         <p><strong>支援進捗:</strong> ¥${shelter.currentSupport} / ¥${getNeededAmount(shelter.id)}</p>
         <div class="progress-bar" style="
           background: #e0e0e0;
@@ -302,11 +245,11 @@ const initMap = () => {
           <div class="progress" style="
             height: 100%;
             background: #76c7c0;
-            width: ${getProgress(shelter.id)}%;
+            width: ${progress}%;
             transition: width 0.4s;
           "></div>
         </div>
-        <p><strong>進捗率:</strong> ${getProgress(shelter.id).toFixed(1)}%</p>
+        <p><strong>進捗率:</strong> ${progress.toFixed(1)}%</p>
         <button onclick="window.viewShelterFromMap('${shelter.id}')" style="
           background: #2196F3;
           color: white;
@@ -554,9 +497,9 @@ onMounted(() => {
 
 .progress {
   height: 100%;
-  background: #76c7c0;
   width: 0;
   transition: width 0.4s;
+  /* 色はJSで動的に指定 */
 }
 
 @media (max-width: 768px) {

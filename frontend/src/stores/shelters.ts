@@ -11,7 +11,7 @@ export const shelters = [
     urgentRequests: 8,
     topRequests: ['ミネラルウォーター', '離乳食', '毛布', '常備薬'],
     requestQuantities: { 'ミネラルウォーター': 50, '離乳食': 20, '毛布': 30, '常備薬': 10 },
-    currentSupport: 12000
+    currentSupport: 2000
   },
   {
     id: 2,
