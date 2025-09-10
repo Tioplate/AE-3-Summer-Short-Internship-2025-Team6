@@ -36,6 +36,11 @@ public class RequestController {
 
     @PostMapping("/updateNumber")
     public ApiResponse<Integer> updateNumber(String reqId, int number) {
+        // 若数量<=0，视为删除该请求
+        if (number <= 0) {
+            int affected = userGoodsService.delete(reqId);
+            return ApiResponse.success(affected);
+        }
         UserGoods userGoods = new UserGoods();
         userGoods.setReqId(reqId);
         userGoods.setNumber(number);
