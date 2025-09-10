@@ -4,8 +4,37 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="89632c40-f052-4c77-b8eb-90a5da5b180f" name="Changes" comment="">
+    <list default="true" id="89632c40-f052-4c77-b8eb-90a5da5b180f" name="Changes" comment="1.4">
+      <change afterPath="$PROJECT_DIR$/frontend/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/.idea/copilot.data.migration.agent.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/.idea/copilot.data.migration.edit.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/.idea/frontend.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/app.env" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/axiosのインストール方法" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/必ずaxiosをインストールした後にプロジェクトを遂行する" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/env.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/env.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/_metadata.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/_metadata.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/chunk-4EPKHDIW.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/chunk-4EPKHDIW.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/chunk-BUSYA2B4.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/chunk-BUSYA2B4.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/chunk-JL3JK2K3.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/chunk-JL3JK2K3.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/leaflet.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/leaflet.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/leaflet.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/leaflet.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/pinia.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/pinia.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/pinia.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/pinia.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue-router.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue-router.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue-router.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue-router.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/.vite/deps/vue.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/views/SignUpView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/SignUpView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,26 +77,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "chen",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Program Files/nodejs/node.exe",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "npm.build.executor": "Run",
-    "settings.editor.selected.configurable": "terminal",
-    "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "D:\\mypro\\Team6\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Spring Boot.Team6BackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Program Files/nodejs/node.exe&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.build.executor&quot;: &quot;Run&quot;,
+    &quot;npm.dev.executor&quot;: &quot;Run&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;terminal&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;D:\\mypro\\Team6\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Spring Boot.Team6BackendApplication">
     <configuration name="Team6BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="team6_backend" />
@@ -76,18 +108,18 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="build" type="js.build_tools.npm" nameIsGenerated="true">
+    <configuration name="dev" type="js.build_tools.npm" nameIsGenerated="true">
       <package-json value="$PROJECT_DIR$/frontend/package.json" />
       <command value="run" />
       <scripts>
-        <script value="build" />
+        <script value="dev" />
       </scripts>
       <node-interpreter value="project" />
       <envs />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="npm.build" />
+      <item itemvalue="npm.dev" />
       <item itemvalue="Spring Boot.Team6BackendApplication" />
     </list>
   </component>

@@ -1,3 +1,8 @@
+/*
+  axiosの利用方法をこのファイルで参考してください。
+  CORS問題への対処は、バックエンド側すでに設定済みですので、特に追加の設定は不要です。
+*/
+
 <template>
   <div class="signup-container">
     <div class="signup-card">
@@ -22,17 +27,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
+const backUrl = import.meta.env.VITE_BACK_URL;
 const router = useRouter();
 
 const userId = ref('');
-const username = ref('');
 const password = ref('');
 const confirmPassword = ref('');
-const email = ref('');
 
 const isFormValid = computed(() => {
-  return userId.value && username.value && password.value && password.value === confirmPassword.value && email.value;
+  return userId.value && password.value && password.value === confirmPassword.value;
 });
 
 const signUp = async () => {
@@ -47,28 +52,20 @@ const signUp = async () => {
   }
 
   const user = {
-    user_id: userId.value,
-    username: username.value,
+    userId: userId.value,
     password: password.value,
-    email: email.value,
+    permission: 0
   };
-
+  //axiosでpostリクエストを送る。axios
   try {
-    const response = await fetch('/user/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(user)
+    const { data } = await axios.post(backUrl + '/user/add', user, {
+      headers: { 'Content-Type': 'application/json' }
     });
 
-    const data = await response.json();
-
-    if (data.code === 0) { // success
+    if (data.code === 0) {
       alert('登録が成功しました！ログイン画面に移動します。');
-      router.push('/'); // ログイン画面へリダイレクト
+      router.push('/login');
     } else {
-      // "userId 已存在" (userId already exists)
       alert(`登録に失敗しました: ${data.message}`);
     }
   } catch (error) {

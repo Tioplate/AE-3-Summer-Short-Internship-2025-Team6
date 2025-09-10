@@ -1,0 +1,2 @@
+frontendフォルダで、Terminalを開き、以下のコマンドを実行してください。
+npm install axios
