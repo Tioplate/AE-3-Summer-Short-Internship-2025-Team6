@@ -3,37 +3,33 @@
     <div class="login-card">
       <h1>災害物資支援プラットフォーム</h1>
       <h2>ログイン</h2>
-      
+
+      <div class="login-form">
+        <input v-model="email" type="email" placeholder="メールアドレス" class="login-input">
+        <input v-model="password" type="password" placeholder="パスワード" class="login-input">
+      </div>
+
       <div class="user-type-selection">
         <h3>利用者タイプを選択してください</h3>
-        
+
         <div class="button-group">
-          <button 
-            @click="loginAsEvacuee" 
-            class="user-type-btn evacuee-btn"
-          >
+          <button @click="loginAsEvacuee" class="user-type-btn evacuee-btn">
             <div class="btn-icon">🏠</div>
             <div class="btn-text">
               <div class="btn-title">避難者として利用</div>
               <div class="btn-subtitle">物資の要請・投稿</div>
             </div>
           </button>
-          
-          <button 
-            @click="loginAsSupporter" 
-            class="user-type-btn supporter-btn"
-          >
+
+          <button @click="loginAsSupporter" class="user-type-btn supporter-btn">
             <div class="btn-icon">💝</div>
             <div class="btn-text">
               <div class="btn-title">支援者として利用</div>
               <div class="btn-subtitle">避難所への支援・寄付</div>
             </div>
           </button>
-          
-          <button 
-            @click="loginAsAdmin" 
-            class="user-type-btn admin-btn"
-          >
+
+          <button @click="loginAsAdmin" class="user-type-btn admin-btn">
             <div class="btn-icon">🏢</div>
             <div class="btn-text">
               <div class="btn-title">運営者として利用</div>
@@ -47,20 +43,55 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const loginAsEvacuee = () => {
-  router.push('/evacuee')
+const email = ref('')
+const password = ref('')
+
+const loginAsEvacuee = async () => {
+  await login('/api/login/evacuee', '/evacuee');
 }
 
-const loginAsSupporter = () => {
-  router.push('/supporter')
+const loginAsSupporter = async () => {
+  await login('/api/login/supporter', '/supporter');
 }
 
-const loginAsAdmin = () => {
-  router.push('/admin')
+const loginAsAdmin = async () => {
+  await login('/api/login/admin', '/admin');
+}
+
+
+const login = async (apiEndpoint: string, redirectPath: string) => {
+  // APIを叩いてログイン処理を行う
+  try {
+    // const response = await fetch(apiEndpoint, { // 実際のエンドポイントに合わせてください
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   },
+    //   body: JSON.stringify({ email: email.value, password: password.value })
+    // });
+
+    // if (!response.ok) {
+    //   throw new Error('ログインに失敗しました');
+    // }
+
+    // const data = await response.json();
+    // console.log('ログイン成功:', data);
+    // ログイン成功後の処理（例：トークンを保存、リダイレクトなど）
+    // router.push(redirectPath); // ログイン後の画面にリダイレクト
+
+    // APIがないので、仮でログイン成功とする
+    console.log('ログイン成功 (仮):', { email: email.value, password: password.value, apiEndpoint });
+    router.push(redirectPath); // ログイン後の画面にリダイレクト
+
+  } catch (error) {
+    console.error('ログインエラー:', error);
+    alert('ログインに失敗しました');
+  }
 }
 </script>
 
@@ -96,6 +127,20 @@ h2 {
   margin-bottom: 30px;
   font-size: 18px;
   font-weight: 400;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.login-input {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
 }
 
 h3 {
@@ -168,15 +213,15 @@ h3 {
   .login-card {
     padding: 30px 20px;
   }
-  
+
   .user-type-btn {
     padding: 15px;
   }
-  
+
   .btn-icon {
     font-size: 28px;
   }
-  
+
   .btn-title {
     font-size: 16px;
   }
