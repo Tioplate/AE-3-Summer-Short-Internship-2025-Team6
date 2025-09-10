@@ -5,4 +5,13 @@
     &quot;last_opened_file_path&quot;: &quot;C:/Program Files/nodejs/node.exe&quot;
   }
 }</component>
+  <component name="RunManager">
+    <configuration name="Team6BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="team6_backend" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.team6_backend.Team6BackendApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
 </project>
