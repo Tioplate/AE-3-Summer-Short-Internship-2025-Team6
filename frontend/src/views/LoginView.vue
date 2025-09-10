@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-card">
       <h1>災害物資支援プラットフォーム</h1>
-      <h2>ログイン</h2>
+      <button class="signup-link">登録はこちら</button>
 
       <div class="login-form">
         <input v-model="email" type="email" placeholder="メールアドレス" class="login-input">
@@ -122,11 +122,14 @@ h1 {
   font-weight: 600;
 }
 
-h2 {
+.signup-link {
   color: #666;
   margin-bottom: 30px;
   font-size: 18px;
   font-weight: 400;
+  border: none;
+  background: none;
+  cursor: pointer;
 }
 
 .login-form {
