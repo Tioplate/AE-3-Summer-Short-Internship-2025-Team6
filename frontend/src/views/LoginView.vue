@@ -5,7 +5,7 @@
       <button @click="goToSignUp" class="signup-link">登録はこちら</button>
 
       <div class="login-form">
-        <input v-model="email" type="email" placeholder="メールアドレス" class="login-input">
+        <input v-model="email" type="email" placeholder="ユーザーID" class="login-input">
         <input v-model="password" type="password" placeholder="パスワード" class="login-input">
       </div>
 

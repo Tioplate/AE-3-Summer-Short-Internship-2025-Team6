@@ -6,10 +6,8 @@
 
       <div class="signup-form">
         <input v-model="userId" type="text" placeholder="ユーザーID" class="signup-input">
-        <input v-model="username" type="text" placeholder="ユーザー名" class="signup-input">
         <input v-model="password" type="password" placeholder="パスワード" class="signup-input">
         <input v-model="confirmPassword" type="password" placeholder="パスワード (確認)" class="signup-input">
-        <input v-model="email" type="email" placeholder="メールアドレス" class="signup-input">
       </div>
 
       <button @click="signUp" class="signup-btn" :disabled="!isFormValid">登録する</button>
@@ -53,7 +51,6 @@ const signUp = async () => {
     username: username.value,
     password: password.value,
     email: email.value,
-
   };
 
   try {
