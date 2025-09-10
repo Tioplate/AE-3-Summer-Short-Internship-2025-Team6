@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.team6_backend.mapper.CommentMapper">
+    <insert id="insert" parameterType="com.example.team6_backend.entity.Comment">
+        INSERT INTO comment (comment_id, comment, shelter_id)
+        VALUES (#{commentId}, #{comment}, #{shelterId});
+    </insert>
+
+    <select id="selectByShelterId" parameterType="String" resultType="com.example.team6_backend.entity.Comment">
+        SELECT comment_id AS commentId, comment, shelter_id AS shelterId
+        FROM comment
+        WHERE shelter_id = #{shelterId}
+        ORDER BY comment_id DESC;
+    </select>
+</mapper>
