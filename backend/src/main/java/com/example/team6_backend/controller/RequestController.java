@@ -3,6 +3,7 @@ package com.example.team6_backend.controller;
 import com.example.team6_backend.common.ApiResponse;
 import com.example.team6_backend.entity.UserGoods;
 import com.example.team6_backend.service.UserGoodsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
