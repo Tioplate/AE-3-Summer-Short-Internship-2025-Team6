@@ -11,7 +11,7 @@
  Target Server Version : 80043 (8.0.43)
  File Encoding         : 65001
 
- Date: 09/09/2025 14:30:16
+ Date: 09/09/2025 22:02:07
 */
 
 SET NAMES utf8mb4;
@@ -58,7 +58,6 @@ CREATE TABLE `shelter_goods`  (
   `shelter_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `number_now` int NULL DEFAULT NULL,
   `number_req` int NOT NULL DEFAULT 0,
-  `price` float NOT NULL DEFAULT 0,
   `comment` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
   PRIMARY KEY (`goods_id`) USING BTREE,
   INDEX `shelter_key`(`shelter_id` ASC) USING BTREE,
