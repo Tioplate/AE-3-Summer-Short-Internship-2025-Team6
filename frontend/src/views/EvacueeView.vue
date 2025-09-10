@@ -59,16 +59,41 @@
 
         <div class="free-request">
           <h3>その他の要請</h3>
+          <div class="keyword-search-row">
+            <input
+              v-model="itemKeyword"
+              type="text"
+              placeholder="楽天商品キーワードを入力"
+              class="item-keyword-input"
+            >
+            <button @click="searchCategories" class="search-btn">検索</button>
+          </div>
+              <div v-if="selectedCategoryName" class="selected-category">
+            選択カテゴリ: {{ selectedCategoryName }}
+          </div>
           <textarea 
             v-model="freeRequest" 
             placeholder="その他に必要な物資や詳細な要望があれば記入してください..."
             class="free-request-textarea"
           ></textarea>
+
         </div>
 
         <button @click="submitRequest" class="submit-btn" :disabled="!hasAnyRequest()">
           要請を送信
         </button>
+        <!-- カテゴリ選択モーダル -->
+        <div v-if="showCategoryModal" class="category-modal">
+          <div class="modal-content">
+            <h3>カテゴリを選択してください</h3>
+            <ul>
+              <li v-for="cat in modalCategories" :key="cat" @click="selectCategory(cat)" class="modal-category">
+                {{ cat }}
+              </li>
+            </ul>
+            <button @click="closeCategoryModal" class="modal-btn">閉じる</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -76,7 +101,7 @@
       <div class="modal-content">
         <h3>要請を送信しました</h3>
         <p>支援者の方々に物資要請が届けられました。</p>
-        <button @click="showSuccess = false" class="modal-btn">OK</button>
+        <button @click="goToMyRequests" class="modal-btn">OK</button>
       </div>
     </div>
   </div>
@@ -92,8 +117,20 @@ const router = useRouter()
 const selectedShelter = ref('')
 const selectedCategory = ref('food')
 const freeRequest = ref('')
+const itemKeyword = ref('')
+const selectedCategoryName = ref('')
+const showCategoryModal = ref(false)
+const modalCategories = ref<string[]>([])
 const showSuccess = ref(false)
 const itemRequests = reactive<Record<string, number>>({})
+
+// 疑似キーワード→カテゴリデータ
+const keywordCategoryMap: Record<string, string[]> = {
+  '水': ['飲料水', 'ミネラルウォーター', '炭酸水'],
+  'タオル': ['バスタオル', 'フェイスタオル', 'スポーツタオル'],
+  'ご飯': ['白米', 'おにぎり', 'レトルトご飯'],
+  'マスク': ['不織布マスク', '布マスク', '子供用マスク'],
+}
 
 const shelters = [
   { id: 'shelter1', name: '中央小学校' },
@@ -156,31 +193,60 @@ const decreaseQuantity = (itemId: string) => {
     itemRequests[itemId]--
   }
 }
+// 検索ボタン押下時
+const searchCategories = () => {
+  const keyword = itemKeyword.value.trim()
+  if (!keyword) return
+  // 疑似API
+  modalCategories.value = keywordCategoryMap[keyword] || ['該当カテゴリなし']
+  showCategoryModal.value = true
+}
+const selectCategory = (cat: string) => {
+  selectedCategoryName.value = cat
+  showCategoryModal.value = false
+}
+
+const closeCategoryModal = () => {
+  showCategoryModal.value = false
+}
+
 
 const hasAnyRequest = () => {
-  return Object.values(itemRequests).some(qty => qty > 0) || freeRequest.value.trim() !== ''
+  return Object.values(itemRequests).some(qty => qty > 0)
+    || freeRequest.value.trim() !== ''
+    || (itemKeyword.value.trim() !== '' && selectedCategoryName.value !== '')
 }
 
 const submitRequest = () => {
   console.log('Submitting request:', {
     shelter: selectedShelter.value,
     items: itemRequests,
-    freeRequest: freeRequest.value
+    freeRequest: freeRequest.value,
+    keyword: itemKeyword.value,
+    category: selectedCategoryName.value,
   })
   showSuccess.value = true
-  
+
   // Reset form
   Object.keys(itemRequests).forEach(key => {
     itemRequests[key] = 0
   })
   freeRequest.value = ''
+  itemKeyword.value = ''
+  selectedCategoryName.value = ''
 }
+
 
 const goBack = () => {
   router.push('/')
 }
 const goToMapView = () => {
   router.push('/evacueemapview')
+}
+
+const goToMyRequests = () => {
+  showSuccess.value = false;
+  router.push('/myrequests')
 }
 </script>
 
@@ -371,6 +437,62 @@ const goToMapView = () => {
   border: 2px solid #ddd;
   border-radius: 3px;
 }
+.keyword-search-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.item-keyword-input {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-family: inherit;
+}
+.search-btn {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 0 18px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+.search-btn:hover {
+  background: #1565c0;
+}
+.selected-category {
+  margin-top: 8px;
+  color: #2196f3;
+  font-weight: bold;
+}
+.category-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+.category-modal .modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 250px;
+}
+.modal-category {
+  padding: 10px;
+  margin: 8px 0;
+  background: #f5f5f5;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-category:hover {
+  background: #e3f2fd;
+}
 
 .free-request {
   margin-bottom: 30px;
@@ -390,6 +512,7 @@ const goToMapView = () => {
   resize: vertical;
   font-family: inherit;
 }
+
 
 .submit-btn {
   width: 100%;

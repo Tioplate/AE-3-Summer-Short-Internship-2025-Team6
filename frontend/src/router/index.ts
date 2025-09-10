@@ -34,6 +34,11 @@ const router = createRouter({
       component: () => import('../views/EvacueeMapView.vue'),
     },
     {
+      path: '/myrequests',
+      name: 'myrequests',
+      component: () => import('../views/MyRequestsView.vue'),
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/AdminView.vue'),
