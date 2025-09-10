@@ -19,6 +19,10 @@ public class RequestController {
 
     @PostMapping("/create")
     public ApiResponse<String> create(@RequestBody UserGoods userGoods) {
+        // 静默处理：数量<=0 直接返回成功，不插入
+        if (userGoods == null || userGoods.getNumber() == null || userGoods.getNumber() <= 0) {
+            return ApiResponse.successMessage("created");
+        }
         int affected = userGoodsService.create(userGoods);
         if (affected > 0) {
             return ApiResponse.successMessage("created");
@@ -33,6 +37,11 @@ public class RequestController {
 
     @PostMapping("/updateNumber")
     public ApiResponse<Integer> updateNumber(String reqId, int number) {
+        // 若数量<=0，视为删除该请求
+        if (number <= 0) {
+            int affected = userGoodsService.delete(reqId);
+            return ApiResponse.success(affected);
+        }
         UserGoods userGoods = new UserGoods();
         userGoods.setReqId(reqId);
         userGoods.setNumber(number);

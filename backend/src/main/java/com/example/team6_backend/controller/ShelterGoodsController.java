@@ -5,23 +5,18 @@ import com.example.team6_backend.entity.ShelterGoods;
 import com.example.team6_backend.service.HttpService;
 import com.example.team6_backend.service.ShelterGoodsService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/shelter_goods")
 public class ShelterGoodsController {
-    private static final Logger logger = LoggerFactory.getLogger(ShelterGoodsController.class);
     private final ShelterGoodsService shelterGoodsService;
     @Autowired
     private HttpService httpService;
@@ -35,7 +30,16 @@ public class ShelterGoodsController {
         this.shelterGoodsService = shelterGoodsService;
     }
     @RequestMapping(value = "/insert", method = RequestMethod.POST)
-    public int insert(@RequestParam("itemCode") String itemCode, int numberNow, int numberReq, String shelterId, String comment) throws JsonProcessingException {//@RequestParam注解可用于当参数名称与前端传值名称不同时映射
+    public int insert(@RequestParam("itemCode") String itemCode,
+                      @RequestParam("numberNow") Integer numberNow,
+                      @RequestParam("numberReq") Integer numberReq,
+                      @RequestParam("shelterId") String shelterId,
+                      @RequestParam(value = "comment", required = false) String comment) throws JsonProcessingException { //@RequestParam注解可用于当参数名称与前端传值名称不同时映射
+        // 检查数量是否为0或负数，非法则静默返回0
+        if (numberNow == null || numberReq == null || numberNow <= 0 || numberReq <= 0) {
+            return 0;
+        }
+        
         StringBuffer url = new StringBuffer();
         url.append(apiUrl)
                 .append("?")
@@ -51,7 +55,7 @@ public class ShelterGoodsController {
         List<ItemInfo> itemList = new ArrayList<>();
         if (itemsNode != null && itemsNode.isArray()) {
             for (JsonNode node : itemsNode) {
-                JsonNode itemNode = node.get("Item"); // 直接拿出 Item 字段
+                JsonNode itemNode = node.get("Item");
                 ItemInfo item = new ItemInfo();
                 item.setItemCode(itemNode.path("itemCode").asText());
                 item.setItemName(itemNode.path("itemName").asText());
@@ -66,10 +70,13 @@ public class ShelterGoodsController {
                 itemList.add(item);
             }
         }
+        if (itemList.isEmpty() || itemList.get(0).getItemName() == null || itemList.get(0).getItemName().trim().isEmpty()) {
+            return 0;
+        }
         ShelterGoods shelterGoods = new ShelterGoods();
         shelterGoods.setGoodsId(itemCode);
         shelterGoods.setShelterId(shelterId);
-        shelterGoods.setGoodsName(itemList.getFirst().getItemName());
+        shelterGoods.setGoodsName(itemList.get(0).getItemName());
         shelterGoods.setNumberNow(numberNow);
         shelterGoods.setNumberReq(numberReq);
         if(comment != null && !comment.isEmpty())

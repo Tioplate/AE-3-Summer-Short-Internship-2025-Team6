@@ -19,6 +19,11 @@ public class CommentController {
 
     @PostMapping
     public ApiResponse<String> add(@RequestBody Comment comment) {
+        // 检查comment是否为空或只包含空白字符
+        if (comment.getComment() == null || comment.getComment().trim().isEmpty()) {
+            return ApiResponse.successMessage("created");
+        }
+        
         int affected = commentService.addComment(comment);
         if (affected > 0) {
             return ApiResponse.successMessage("created");
