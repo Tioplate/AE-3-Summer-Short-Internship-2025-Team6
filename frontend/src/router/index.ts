@@ -29,6 +29,11 @@ const router = createRouter({
       component: () => import('../views/DonationView.vue'),
     },
     {
+      path: '/evacueemapview',
+      name: 'evacueemapview',
+      component: () => import('../views/EvacueeMapView.vue'),
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/AdminView.vue'),
