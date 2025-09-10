@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.team6_backend.mapper.ShelterGoodsMapper">
+    <insert id="insert" parameterType="com.example.team6_backend.entity.ShelterGoods">
+        INSERT INTO shelter_goods (goods_id, goods_name, shelter_id, number_now, number_req, comment) VALUES (#{goodsId}, #{goodsName}, #{shelterId}, #{numberNow}, #{numberReq}, #{comment});
+    </insert>
+    <delete id="deleteById" parameterType="String">
+        DELETE FROM shelter_goods WHERE goods_id = #{goodsId};
+    </delete>
+    <update id="update" parameterType="com.example.team6_backend.entity.ShelterGoods">
+        UPDATE shelter_goods
+        SET goods_name = #{goodsName},
+        shelter_id = #{shelterId},
+        number_now = #{numberNow},
+        number_req = #{numberReq},
+        comment = #{comment}
+        WHERE goods_id = #{goodsId};
+    </update>
+    <select id="selectByShelterId" parameterType="String" resultType="com.example.team6_backend.entity.ShelterGoods">
+        SELECT * FROM shelter_goods WHERE shelter_id = #{shelterId};
+    </select>
+    <select id="selectByGoodsId" parameterType="String" resultType="com.example.team6_backend.entity.ShelterGoods">
+        SELECT * FROM shelter_goods WHERE goods_id = #{goodsId};
+    </select>
+</mapper>
