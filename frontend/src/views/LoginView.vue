@@ -5,7 +5,7 @@
       <button @click="goToSignUp" class="signup-link">登録はこちら</button>
 
       <div class="login-form">
-        <input v-model="email" type="email" placeholder="ユーザーID" class="login-input">
+        <input v-model="userId" type="text" placeholder="ユーザーID" class="login-input">
         <input v-model="password" type="password" placeholder="パスワード" class="login-input">
       </div>
 
@@ -45,22 +45,28 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from "axios";
 
 const router = useRouter()
 
-const email = ref('')
+const backUrl = import.meta.env.VITE_BACK_URL;
+const userId = ref('')
 const password = ref('')
+const permission = ref<number | undefined>(undefined);// 0:避難者, 1:支援者, 2:運営者
 
 const loginAsEvacuee = async () => {
-  await login('/api/login/evacuee', '/evacuee');
+  permission.value = 0;
+  await login(backUrl + '/auth/login', '/evacuee');
 }
 
 const loginAsSupporter = async () => {
-  await login('/api/login/supporter', '/supporter');
+  permission.value = 1;
+  await login(backUrl + '/auth/login', '/supporter');
 }
 
 const loginAsAdmin = async () => {
-  await login('/api/login/admin', '/admin');
+  permission.value = 2;
+  await login(backUrl + '/auth/login', '/admin');
 }
 
 const goToSignUp = () => {
@@ -89,12 +95,35 @@ const login = async (apiEndpoint: string, redirectPath: string) => {
     // router.push(redirectPath); // ログイン後の画面にリダイレクト
 
     // APIがないので、仮でログイン成功とする
-    console.log('ログイン成功 (仮):', { email: email.value, password: password.value, apiEndpoint });
+    // if (permission.value === undefined) {
+    //   alert('利用者タイプを選択してください');
+    //   return;
+    // }
+    const response = await axios.post(apiEndpoint, {
+      userId: userId.value,
+      password: password.value,
+      permission: permission.value
+    })
+    if (response.status !== 200) {
+      throw new Error('エラー発生しました');
+    }
+    else{
+      const data = response.data;
+      if (data.code !== 0) {
+        alert(`ログインに失敗しました: ${data.message}`);
+        return;
+      }
+      // トークンをローカルストレージに保存
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', userId.value);
+      localStorage.setItem('permission', String(permission.value));
+      alert('ログインに成功しました');
+    }
+    //console.log('ログイン成功 (仮):', { email: userId.value, password: password.value, apiEndpoint });
     router.push(redirectPath); // ログイン後の画面にリダイレクト
-
   } catch (error) {
     console.error('ログインエラー:', error);
-    alert('ログインに失敗しました');
+    alert('エラー発生しました');
   }
 }
 </script>
