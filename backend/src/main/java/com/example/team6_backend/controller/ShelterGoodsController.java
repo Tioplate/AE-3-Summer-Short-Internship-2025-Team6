@@ -118,6 +118,7 @@ public class ShelterGoodsController {
         return itemList;
     }
 
+
     // 删除
     @DeleteMapping("/delete")
     public int deleteById(@RequestParam("goodsId") String goodsId) {
