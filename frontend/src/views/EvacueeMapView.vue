@@ -148,15 +148,7 @@ const initMap = () => {
         <h3>${shelter.name}</h3>
         <p><strong>収容:</strong> ${shelter.currentCapacity}/${shelter.maxCapacity}人</p>
         <p><strong>緊急要請:</strong> ${shelter.urgentRequests}件</p>
-        <button onclick="window.viewShelterFromMap('${shelter.id}')" style="
-          background: #2196F3;
-          color: white;
-          border: none;
-          padding: 8px 16px;
-          border-radius: 4px;
-          cursor: pointer;
-          margin-top: 8px;
-        ">詳細を見る</button>
+
       </div>
     `
     
