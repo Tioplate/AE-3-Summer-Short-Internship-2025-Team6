@@ -199,6 +199,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { shelters } from '../stores/shelters'
 
 const router = useRouter()
 const route = useRoute()
@@ -380,6 +381,15 @@ const processDonation = () => {
   usedPoints: usePoints.value ? (usedPoints.value || 0) : 0,
   finalPayable: finalPayable.value
   })
+
+  // 寄付金額をshelters配列のcurrentSupportに加算
+  const targetShelter = shelters.find(s => s.id === shelter.value?.id)
+  console.log('Target shelter:', targetShelter.id)
+  if (targetShelter) {
+    console.log('Before donation, currentSupport:', targetShelter.currentSupport)
+    targetShelter.currentSupport = (targetShelter.currentSupport || 0) + finalPayable.value
+    console.log('After donation, currentSupport:', targetShelter.currentSupport)
+  }
   showDonationSuccess.value = true
 }
 
@@ -410,8 +420,8 @@ const goBack = () => {
 }
 
 onMounted(() => {
-  const shelterId = route.params.id as string
-  shelter.value = (mockShelters as any)[shelterId] || mockShelters.shelter1
+  const shelterId = Number(route.params.id)
+  shelter.value = shelters.find(s => s.id === shelterId) || shelters[0]
 })
 </script>
 

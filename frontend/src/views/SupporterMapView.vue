@@ -98,6 +98,8 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import L from 'leaflet'
+import { shelters } from '../stores/shelters'
+import axios from 'axios'
 
 const router = useRouter()
 const mapContainer = ref<HTMLElement>()
@@ -120,50 +122,50 @@ const items = [
   { name: '乾電池', price: 200 }
 ]
 
-const shelters = [
-  {
-    id: 1,
-    name: '中央小学校',
-    lat: 35.6762,
-    lng: 139.6503,
-    urgency: 'high',
-    currentCapacity: 180,
-    maxCapacity: 200,
-    recentRequests: 15,
-    urgentRequests: 8,
-    topRequests: ['ミネラルウォーター', '離乳食', '毛布', '常備薬'],
-    requestQuantities: { 'ミネラルウォーター': 50, '離乳食': 20, '毛布': 30, '常備薬': 10 },
-    currentSupport: 12000
-  },
-  {
-    id: 2,
-    name: '市民体育館',
-    lat: 35.6712,
-    lng: 139.6533,
-    urgency: 'medium',
-    currentCapacity: 90,
-    maxCapacity: 150,
-    recentRequests: 8,
-    urgentRequests: 3,
-    topRequests: ['おにぎり', 'タオル', '乾電池'],
-    requestQuantities: { 'おにぎり': 40, 'タオル': 25, '乾電池': 30 },
-    currentSupport: 8000
-  },
-  {
-    id: 3,
-    name: '総合公園体育館',
-    lat: 35.6792,
-    lng: 139.6473,
-    urgency: 'low',
-    currentCapacity: 45,
-    maxCapacity: 100,
-    recentRequests: 4,
-    urgentRequests: 1,
-    topRequests: ['パン', 'マスク'],
-    requestQuantities: { 'パン': 30, 'マスク': 20 },
-    currentSupport: 5000
-  }
-]
+// const shelters = [
+//   {
+//     id: 1,
+//     name: '中央小学校',
+//     lat: 35.6762,
+//     lng: 139.6503,
+//     urgency: 'high',
+//     currentCapacity: 180,
+//     maxCapacity: 200,
+//     recentRequests: 15,
+//     urgentRequests: 8,
+//     topRequests: ['ミネラルウォーター', '離乳食', '毛布', '常備薬'],
+//     requestQuantities: { 'ミネラルウォーター': 50, '離乳食': 20, '毛布': 30, '常備薬': 10 },
+//     currentSupport: 12000
+//   },
+//   {
+//     id: 2,
+//     name: '市民体育館',
+//     lat: 35.6712,
+//     lng: 139.6533,
+//     urgency: 'medium',
+//     currentCapacity: 90,
+//     maxCapacity: 150,
+//     recentRequests: 8,
+//     urgentRequests: 3,
+//     topRequests: ['おにぎり', 'タオル', '乾電池'],
+//     requestQuantities: { 'おにぎり': 40, 'タオル': 25, '乾電池': 30 },
+//     currentSupport: 8000
+//   },
+//   {
+//     id: 3,
+//     name: '総合公園体育館',
+//     lat: 35.6792,
+//     lng: 139.6473,
+//     urgency: 'low',
+//     currentCapacity: 45,
+//     maxCapacity: 100,
+//     recentRequests: 4,
+//     urgentRequests: 1,
+//     topRequests: ['パン', 'マスク'],
+//     requestQuantities: { 'パン': 30, 'マスク': 20 },
+//     currentSupport: 5000
+//   }
+// ]
 
 const getUrgencyText = (urgency: string) => {
   const map: Record<string, string> = {
@@ -183,11 +185,36 @@ const getMarkerColor = (urgency: string) => {
   return colors[urgency] || 'green'
 }
 
-// アイテムの価格を取得する関数
+// --- 価格取得ロジック切り替え ---
+
+// ▼ダミーデータ版（ローカルitems配列から価格取得）
 const getItemPrice = (name: string) => {
   const item = items.find(i => i.name === name)
   return item ? item.price : 0
 }
+
+// ▼API版（楽天APIから価格取得）
+// async function getItemPrice(name: string): Promise<number | null> {
+//   const applicationId = '0ac0231b12c673522dee331f7b65b9f85505603f' // 楽天APIキー
+//   const url = 'https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601'
+//   const params = {
+//     applicationId: applicationId,
+//     keyword: name,
+//     sort: '+itemPrice',
+//     hits: 10,
+//   }
+//   try {
+//     const res = await axios.get(url, { params })
+//     const items = res.data.Items
+//     if (!items || items.length === 0) return 0
+//     const price = Math.min(...items.map((i: any) => i.Item.itemPrice))
+//     return price != null && !isNaN(price) ? price : 0
+//   } catch (e) {
+//     console.error('楽天APIエラー:', e)
+//     return 0
+//   }
+// }
+
 
 // 必要支援金額を計算する関数
 const getNeededAmount = (shelterID: number) => {
@@ -196,8 +223,11 @@ const getNeededAmount = (shelterID: number) => {
   if (!shelter || !shelter.topRequests || !shelter.requestQuantities) return 0
   shelter.topRequests.forEach(name => {
     const quantity = shelter.requestQuantities[name] || 0
-    total += getItemPrice(name) * quantity
+    const price = getItemPrice(name)
+    if (price == null || isNaN(price)) return
+    total += price * quantity
   })
+  if (isNaN(total) || total == null) return 0
   return total
 }
 
