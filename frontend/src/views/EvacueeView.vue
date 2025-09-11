@@ -197,6 +197,7 @@ const searchCategories = () => {
   const keyword = itemKeyword.value.trim()
   if (!keyword) return
   // 疑似API
+
   modalCategories.value = keywordCategoryMap[keyword] || ['該当カテゴリなし']
   showCategoryModal.value = true
 }
