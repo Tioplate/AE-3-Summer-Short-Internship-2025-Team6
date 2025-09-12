@@ -7,6 +7,7 @@ public class ShelterGoods {
     private Integer numberNow;
     private Integer numberReq;
     private String comment;
+    private String status;
 
     // Getters and Setters
 
@@ -27,4 +28,7 @@ public class ShelterGoods {
 
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

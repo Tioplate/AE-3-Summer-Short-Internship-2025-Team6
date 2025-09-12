@@ -44,6 +44,10 @@ public class ShelterController {
     public int updateRequestedMoney(@RequestParam String shelterId, @RequestParam Integer moneyReq) {
         return shelterService.updateRequestedMoney(shelterId, moneyReq);
     }
+    @PostMapping("/updateStatus")
+    public int updateStatus(@RequestParam String shelterId, @RequestParam String status) {
+        return shelterService.updateStatus(shelterId, status);
+    }
 
     @GetMapping("/list")
     public List<Shelter> selectAll() {
@@ -53,5 +57,44 @@ public class ShelterController {
     @GetMapping("/getById")
     public Shelter selectById(@RequestParam String shelterId) {
         return shelterService.selectById(shelterId);
+    }
+
+    @GetMapping("/stats")
+    public StatsResponse getStats() {
+        int total = shelterService.countAll();
+        int urgent = shelterService.countByStatus("urgent");
+        int needsSupplies = shelterService.countByStatus("needs-supplies");
+        int full = shelterService.countByStatus("full");
+        return new StatsResponse(total, urgent, needsSupplies, full);
+    }
+
+    public static class StatsResponse {
+        private final int total;
+        private final int urgent;
+        private final int needsSupplies;
+        private final int full;
+
+        public StatsResponse(int total, int urgent, int needsSupplies, int full) {
+            this.total = total;
+            this.urgent = urgent;
+            this.needsSupplies = needsSupplies;
+            this.full = full;
+        }
+
+        public int getTotal() {
+            return total;
+        }
+
+        public int getUrgent() {
+            return urgent;
+        }
+
+        public int getNeedsSupplies() {
+            return needsSupplies;
+        }
+
+        public int getFull() {
+            return full;
+        }
     }
 }

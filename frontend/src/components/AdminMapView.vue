@@ -47,10 +47,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import axios from "axios";
+import {shelters} from "@/stores/shelters.ts";
+import {ElMessage} from "element-plus";
 
+const backUrl = import.meta.env.VITE_BACK_URL || 'http://localhost:3000'
 const mapFilter = ref('all')
 let map: L.Map | null = null
 
@@ -59,6 +63,20 @@ const shelterStats = ref({
   urgent: 3,
   needsSupplies: 7,
   full: 2
+})
+
+// 计算属性：根据mapFilter筛选shelters
+const filteredShelters = computed(() => {
+  switch (mapFilter.value) {
+    case 'urgent':
+      return shelters.value.filter(s => s.status === 'urgent')
+    case 'needs-supplies':
+      return shelters.value.filter(s => s.status === 'needs-supplies')
+    case 'full':
+      return shelters.value.filter(s => s.status === 'full')
+    default:
+      return shelters.value
+  }
 })
 
 const initMap = () => {
@@ -73,16 +91,11 @@ const initMap = () => {
   }
 }
 
+
 const addShelterMarkers = () => {
   if (!map) return
 
-  const sampleShelters = [
-    { id: 1, name: '中央小学校', lat: 35.6762, lng: 139.6503, status: 'urgent', occupancy: 80 },
-    { id: 2, name: '市民体育館', lat: 35.6800, lng: 139.6600, status: 'normal', occupancy: 45 },
-    { id: 3, name: '北部コミュニティセンター', lat: 35.6900, lng: 139.6400, status: 'needs-supplies', occupancy: 60 },
-  ]
-
-  sampleShelters.forEach(shelter => {
+  filteredShelters.value.forEach(shelter => {
     const color = getMarkerColor(shelter.status)
     const marker = L.circleMarker([shelter.lat, shelter.lng], {
       radius: 10,
@@ -92,11 +105,16 @@ const addShelterMarkers = () => {
       fillOpacity: 0.8
     }).addTo(map!)
 
+    const getOccupancyPercent = (cur: number, cap: number) => {
+      if (!cap) return '0'
+      return ((cur / cap) * 100).toFixed(1)
+    }
+
     marker.bindPopup(`
       <div>
-        <h4>${shelter.name}</h4>
+        <h4>${shelter.shelterName}</h4>
         <p>状態: ${getStatusText(shelter.status)}</p>
-        <p>収容率: ${shelter.occupancy}%</p>
+        <p>収容率: ${getOccupancyPercent(shelter.shelterCur, shelter.shelterCap)}%</p>
       </div>
     `)
   })
@@ -131,9 +149,27 @@ const refreshMap = () => {
   }
 }
 
+// 监听mapFilter变化时刷新地图
+watch(mapFilter, () => {
+  refreshMap()
+})
 
-onMounted(() => {
+onMounted(async () => {
   setTimeout(initMap, 100)
+  try {
+    const res = await axios.get(backUrl + '/shelter/list')
+    shelters.value = res.data // 假设后端返回的是避难所数组
+  } catch (e) {
+    ElMessage.error('避難所データの取得に失敗しました')
+    return
+  }
+  // 获取统计数据
+  try {
+    const statsRes = await axios.get(backUrl + '/shelter/stats')
+    shelterStats.value = statsRes.data
+  } catch (e) {
+    ElMessage.error('避難所統計データの取得に失敗しました')
+  }
 })
 
 onUnmounted(() => {

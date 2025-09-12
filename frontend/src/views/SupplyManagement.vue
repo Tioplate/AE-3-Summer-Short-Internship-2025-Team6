@@ -13,20 +13,20 @@
     </div>
 
     <div class="shelter-requests">
-      <div 
-        v-for="shelter in filteredShelters" 
-        :key="shelter.id"
-        class="shelter-card"
+      <div
+          v-for="shelter in filteredShelters"
+          :key="shelter.id"
+          class="shelter-card"
       >
         <div class="shelter-header">
-          <h3>{{ shelter.shelterName }}</h3>
+          <h3>{{ shelter.name }}</h3>
           <span :class="['urgency', shelter.urgency]">
             {{ getUrgencyText(shelter.urgency) }}
           </span>
         </div>
-        
+
         <div class="shelter-info">
-          <p><strong>担当者:</strong> {{ shelter.adminId }}</p>
+          <p><strong>担当者:</strong> {{ shelter.manager }}</p>
           <p><strong>連絡先:</strong> {{ shelter.contact }}</p>
           <p><strong>申請日時:</strong> {{ formatDate(shelter.requestDate) }}</p>
         </div>
@@ -34,10 +34,10 @@
         <div class="supply-requests">
           <h4>申請物資一覧</h4>
           <div class="request-list">
-            <div 
-              v-for="request in shelter.requests" 
-              :key="request.id"
-              class="request-item"
+            <div
+                v-for="request in shelter.requests"
+                :key="request.id"
+                class="request-item"
             >
               <div class="request-info">
                 <span class="item-name">{{ request.itemName }}</span>
@@ -45,23 +45,23 @@
                 <span :class="['status', request.status]">{{ getStatusText(request.status) }}</span>
               </div>
               <div class="request-actions">
-                <button 
-                  v-if="request.status === 'pending'"
-                  @click="approveRequest(shelter.id, request.id)"
-                  class="approve-btn"
+                <button
+                    v-if="request.status === 'pending'"
+                    @click="approveRequest(shelter.id, request.id)"
+                    class="approve-btn"
                 >
                   承認
                 </button>
-                <button 
-                  v-if="request.status === 'approved'"
-                  @click="markDelivered(shelter.id, request.id)"
-                  class="deliver-btn"
+                <button
+                    v-if="request.status === 'approved'"
+                    @click="markDelivered(shelter.id, request.id)"
+                    class="deliver-btn"
                 >
                   配送完了
                 </button>
-                <button 
-                  @click="viewRequestDetail(request)"
-                  class="detail-btn"
+                <button
+                    @click="viewRequestDetail(request)"
+                    class="detail-btn"
                 >
                   詳細
                 </button>
@@ -86,6 +86,10 @@
             <span>{{ selectedRequest.quantity }}{{ selectedRequest.unit }}</span>
           </div>
           <div class="detail-row">
+            <span class="label">優先度:</span>
+            <span>{{ selectedRequest.priority }}</span>
+          </div>
+          <div class="detail-row">
             <span class="label">申請理由:</span>
             <span>{{ selectedRequest.reason }}</span>
           </div>
@@ -103,10 +107,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, computed } from 'vue'
 import { useSuppliesStore, type SupplyRequest, type ShelterRequest } from '@/stores/supplies'
-import {ElMessage} from "element-plus";
 
 const suppliesStore = useSuppliesStore()
 
@@ -119,98 +121,108 @@ const selectedRequest = ref<SupplyRequest>({
   quantity: 0,
   unit: '',
   status: 'pending',
+  priority: '',
   reason: '',
   notes: ''
 })
 
-interface ShelterGoods {
-  goodsId: string
-  goodsName: string
-  shelterId: string
-  numberNow: number
-  numberReq: number
-  comment?: string
-  status?: string
-}
-
-const groupedShelterGoods = ref<Record<string, ShelterGoods>>({})
-const backUrl = import.meta.env.VITE_BACK_URL
-
-const shelterInfoMap: Record<string, {
-  shelterName: string
-  adminId: string
-  contact: string
-  urgency: 'high' | 'medium' | 'low'
-  requestDate: string
-}> = {
-  '1': {
-    shelterName: '中央小学校',
-    adminId: '田中太郎',
-    contact: '090-1234-5678',
-    urgency: 'high',
-    requestDate: '2024-01-15 14:30',
-  },
-  '2': {
-    shelterName: '市民体育館',
-    adminId: '佐藤花子',
-    contact: '090-2345-6789',
-    urgency: 'medium',
-    requestDate: '2024-01-15 16:45',
-  },
-  '3': {
-    shelterName: '北部コミュニティセンター',
-    adminId: '鈴木一郎',
-    contact: '090-3456-7890',
-    urgency: 'low',
-    requestDate: '2024-01-16 09:15',
-  },
-  // 可根据实际 shelterId 增加更多
-}
-
-onMounted(async () => {
-  try {
-    const res = await axios.get(backUrl + '/shelter_goods/groupByShelter')
-    groupedShelterGoods.value = res.data
-    // 转换为 ShelterRequest[]
-    const shelters: any[] = []
-    console.warn(res.data)
-    for (const shelterId in res.data) {
-
-      const info = shelterInfoMap[shelterId] || {
-        shelterName: res.data[shelterId][0]?.shelterName || '不明な避難所',
-        adminId: '',
-        contact: '',
+// 初期データをストアに設定
+if (suppliesStore.shelters.length === 0) {
+  suppliesStore.shelters.push(
+      {
+        id: 1,
+        name: '中央小学校',
+        manager: '田中太郎',
+        contact: '090-1234-5678',
+        urgency: 'high',
+        requestDate: '2024-01-15 14:30',
+        requests: [
+          {
+            id: 101,
+            itemName: '非常用パン',
+            quantity: 200,
+            unit: '個',
+            status: 'pending',
+            priority: '緊急',
+            reason: '避難者数が増加し、食料が不足しています'
+          },
+          {
+            id: 102,
+            itemName: 'ペットボトル水',
+            quantity: 500,
+            unit: '本',
+            status: 'approved',
+            priority: '緊急',
+            reason: '水道が復旧しておらず、飲料水が必要です'
+          },
+          {
+            id: 103,
+            itemName: '毛布',
+            quantity: 100,
+            unit: '枚',
+            status: 'delivered',
+            priority: '普通',
+            reason: '夜間の冷え込みが厳しく、暖房器具が不足'
+          }
+        ]
+      },
+      {
+        id: 2,
+        name: '市民体育館',
+        manager: '佐藤花子',
+        contact: '090-2345-6789',
+        urgency: 'medium',
+        requestDate: '2024-01-15 16:45',
+        requests: [
+          {
+            id: 201,
+            itemName: 'マスク',
+            quantity: 300,
+            unit: '枚',
+            status: 'pending',
+            priority: '普通',
+            reason: '感染症対策のため必要です'
+          },
+          {
+            id: 202,
+            itemName: '消毒用アルコール',
+            quantity: 10,
+            unit: '本',
+            status: 'pending',
+            priority: '普通',
+            reason: '手指消毒用として使用します'
+          }
+        ]
+      },
+      {
+        id: 3,
+        name: '北部コミュニティセンター',
+        manager: '鈴木一郎',
+        contact: '090-3456-7890',
         urgency: 'low',
-        requestDate: '',
+        requestDate: '2024-01-16 09:15',
+        requests: [
+          {
+            id: 301,
+            itemName: '紙おむつ',
+            quantity: 50,
+            unit: 'パック',
+            status: 'approved',
+            priority: '普通',
+            reason: '乳幼児の避難者がいるため必要です',
+            notes: 'Mサイズ中心でお願いします'
+          }
+        ]
       }
-      const requests = res.data[shelterId].map((g: any, idx: number) => ({
-        id: g.goodsId || (idx + 1),
-        itemName: g.goodsName,
-        quantity: g.numberReq,
-        unit: '個', // 如有单位字段可替换
-        status: g.status || 'pending',
-        reason: g.comment || '',
-        notes: '',
-      }))
-      shelters.push({
-        id: Number(shelterId),
-        ...info,
-        requests
-      })
-    }
-    suppliesStore.shelters.splice(0, suppliesStore.shelters.length, ...shelters)
-  } catch (e) {
-    // eslint-disable-next-line no-undef
-    if (typeof ElMessage !== 'undefined') ElMessage.error('物資データの取得に失敗しました')
-  }
-})
+  )
+}
 
 const filteredShelters = computed(() => {
   if (statusFilter.value === 'all') {
     return suppliesStore.shelters
   }
-  return suppliesStore.shelters.filter(shelter => 
-    shelter.requests.some(request => request.status === statusFilter.value)
+  return suppliesStore.shelters.filter(shelter =>
+      shelter.requests.some(request => request.status === statusFilter.value)
   ).map(shelter => ({
     ...shelter,
     requests: shelter.requests.filter(request => request.status === statusFilter.value)
@@ -529,17 +541,17 @@ const closeModal = () => {
     gap: 15px;
     align-items: stretch;
   }
-  
+
   .request-item {
     flex-direction: column;
     gap: 15px;
     align-items: stretch;
   }
-  
+
   .request-actions {
     justify-content: flex-start;
   }
-  
+
   .modal {
     margin: 10px;
     padding: 20px;

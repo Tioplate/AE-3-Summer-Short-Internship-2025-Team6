@@ -1,7 +1,7 @@
 <template>
   <div class="donation-container">
     <header class="header">
-      <h1>{{ shelter?.name }}への支援・寄付</h1>
+      <h1>{{ shelter?.shelterName }}への支援・寄付</h1>
       <button @click="goBack" class="back-btn">← 詳細画面に戻る</button>
     </header>
 
@@ -12,23 +12,23 @@
           <div class="shelter-info">
             <div class="info-row">
               <span class="label">避難所名:</span>
-              <span class="value">{{ shelter.name }}</span>
+              <span class="value">{{ shelter.shelterName }}</span>
             </div>
             <div class="info-row">
               <span class="label">収容状況:</span>
-              <span class="value">{{ shelter.currentCapacity }} / {{ shelter.maxCapacity }}人</span>
+              <span class="value">{{ shelter.shelterCur }} / {{ shelter.shelterCap }}人</span>
             </div>
             <div class="info-row">
               <span class="label">緊急度:</span>
               <span class="value">
-                <span class="status-badge" :class="`status-${shelter.urgency}`">
-                  {{ getUrgencyText(shelter.urgency) }}
+                <span class="status-badge" :class="`status-${shelter.status}`">
+                  {{ getUrgencyText(shelter.status) }}
                 </span>
               </span>
             </div>
             <div class="info-row">
               <span class="label">運営責任者:</span>
-              <span class="value">{{ shelter.manager }}</span>
+              <span class="value">{{ shelter.adminId }}</span>
             </div>
           </div>
         </div>
@@ -197,10 +197,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive, watch } from 'vue'
+import { ref, computed, onMounted, reactive, watch , onBeforeMount} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { shelters } from '../stores/shelters'
+import axios from "axios";
+import {ElMessage} from "element-plus";
 
+const backUrl = import.meta.env.VITE_BACK_URL;
+const shelterId = ref<string>('');
 const router = useRouter()
 const route = useRoute()
 
@@ -371,26 +375,37 @@ const getCurrentGoodsItems = () => {
   return goodsItems.filter(item => item.category === selectedGoodsCategory.value)
 }
 
-const processDonation = () => {
+const processDonation = async () => {
   console.log('Processing donation:', {
     amount: getFinalAmount(),
     organization: selectedOrganization.value,
     message: donationMessage.value,
-  shelter: shelter.value?.id,
+  shelter: shelter.value?.shelterId,
   paymentMethod: paymentMethod.value,
   usedPoints: usePoints.value ? (usedPoints.value || 0) : 0,
   finalPayable: finalPayable.value
   })
 
   // 寄付金額をshelters配列のcurrentSupportに加算
-  const targetShelter = shelters.find(s => s.id === shelter.value?.id)
-  console.log('Target shelter:', targetShelter.id)
+  const targetShelter = shelters.value.find(s => s.shelterId === shelter.value?.shelterId)
+  //console.log('Target shelter:', targetShelter.shelterId)
   if (targetShelter) {
-    console.log('Before donation, currentSupport:', targetShelter.currentSupport)
-    targetShelter.currentSupport = (targetShelter.currentSupport || 0) + finalPayable.value
-    console.log('After donation, currentSupport:', targetShelter.currentSupport)
+    //console.log('Before donation, currentSupport:', targetShelter.currentSupport)
+    targetShelter.moneyCur = (targetShelter.moneyCur || 0) + finalPayable.value
+    //console.log('After donation, currentSupport:', targetShelter.currentSupport)
+    await axios.post(backUrl + '/shelter/updateCurrentMoney', null, {
+      params: {
+        shelterId: targetShelter.shelterId,
+        moneyCur: targetShelter.moneyCur
+      }
+    })
+    showDonationSuccess.value = true
   }
-  showDonationSuccess.value = true
+  else {
+    ElMessage.error('寄付先の避難所が見つかりません')
+  }
+
+
 }
 
 const submitGoodsSupport = () => {
@@ -401,7 +416,7 @@ const submitGoodsSupport = () => {
   
   console.log('Submitting goods support:', {
     items: supportItems,
-    shelter: shelter.value?.id
+    shelter: shelter.value?.shelterId
   })
   showGoodsSuccess.value = true
 }
@@ -416,12 +431,30 @@ const closeDonationSuccess = () => {
 }
 
 const goBack = () => {
-  router.push(`/shelter/${route.params.id}`)
+  router.push(`/shelter/${route.params.shelterId}`)
 }
+onBeforeMount( () => {
+  // モックデータをstoresにセット
+  shelterId.value = route.params.shelterId as string
+  shelter.value = shelters.value.find(s => s.shelterId === shelterId.value) || shelters.value[0]
+})
 
-onMounted(() => {
-  const shelterId = Number(route.params.id)
-  shelter.value = shelters.find(s => s.id === shelterId) || shelters[0]
+onMounted(async () => {
+  try {
+    const res = await axios.get(backUrl + '/shelter/getById', {
+      params: { shelterId: shelterId.value }
+    })
+    //shelters.value = res.data // 假设后端返回的是避难所数组
+    //shelters
+    //alert(res.data)
+    shelter.value = shelters.value.find(s => s.shelterId === shelterId.value) || null
+    if (!shelter.value) {
+      ElMessage.error('指定された避難所が見つかりません')
+    }
+  } catch (e) {
+    ElMessage.error('避難所データの取得に失敗しました')
+    return
+  }
 })
 </script>
 

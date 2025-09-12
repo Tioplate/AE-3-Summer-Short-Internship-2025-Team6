@@ -10,4 +10,5 @@ public interface UserGoodsMapper {
     List<UserGoods> selectByUserId(String userId);
     int deleteByReqId(String reqId); // 根据主键删除
     int updateNumber(UserGoods userGoods);
+    int batchInsert(List<UserGoods> list);
 }

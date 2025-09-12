@@ -15,6 +15,11 @@ const router = createRouter({
       name: 'login',
       component: () => import('../views/LoginView.vue'),
     },
+      {
+          path: '/test',
+          name: 'test',
+          component: () => import('../views/Test.vue'),
+      },
     {
       path: '/evacuee',
       name: 'evacuee',
@@ -26,12 +31,12 @@ const router = createRouter({
       component: () => import('../views/SupporterMapView.vue'),
     },
     {
-      path: '/shelter/:id',
+      path: '/shelter/:shelterId',
       name: 'shelter',
       component: () => import('../views/ShelterDetailView.vue'),
     },
     {
-      path: '/donation/:id',
+      path: '/donation/:shelterId',
       name: 'donation',
       component: () => import('../views/DonationView.vue'),
     },

@@ -30,50 +30,50 @@
       <div class="shelter-cards">
         <div 
           v-for="shelter in shelters" 
-          :key="shelter.id"
+          :key="shelter.shelterId"
           class="shelter-card"
-          @click="viewShelterDetail(shelter.id)"
+          @click="viewShelterDetail(shelter.shelterId)"
         >
           <div class="shelter-header">
-            <h3>{{ shelter.name }}</h3>
+            <h3>{{ shelter.shelterName }}</h3>
             <span 
               class="status-badge"
               :style="{
-                background: getProgressColor(getProgress(shelter.id)),
+                background: getProgressColor(getProgress(shelter.shelterId)),
                 color: '#fff'
               }"
             >
-              {{ getProgressUrgencyText(getProgress(shelter.id)) }}
+              {{ getProgressUrgencyText(getProgress(shelter.shelterId)) }}
             </span>
           </div>
           
           <div class="shelter-info">
             <div class="info-item">
               <span class="label">収容人数:</span>
-              <span class="value">{{ shelter.currentCapacity }} / {{ shelter.maxCapacity }}人</span>
+              <span class="value">{{ shelter.shelterCur }} / {{ shelter.shelterCap }}人</span>
             </div>
             <!-- 必要支援金額と進捗ゲージ -->
             <div class="info-item">
               <span class="label">必要支援金額:</span>
-              <span class="value">¥{{ getNeededAmount(shelter.id) }}</span>
+              <span class="value">¥{{ shelter.moneyReq }}</span>
             </div>
             <div class="info-item">
               <span class="label">支援進捗:</span>
-              <span class="value">¥{{ shelter.currentSupport }} / ¥{{ getNeededAmount(shelter.id) }}</span>
+              <span class="value">¥{{ shelter.moneyCur }} / ¥{{ shelter.moneyReq }}</span>
             </div>
             <div class="progress-bar">
               <!-- <div class="progress" :style="{ width: getProgress(shelter.id) + '%' }"></div> -->
               <div 
                 class="progress"
                 :style="{
-                  width: getProgress(shelter.id) + '%',
-                  background: getProgressColor(getProgress(shelter.id))
+                  width: getProgress(shelter.shelterId) + '%',
+                  background: getProgressColor(getProgress(shelter.shelterId))
                 }"
               ></div>
             </div>
             <div class="info-item">
               <span class="label">進捗率:</span>
-              <span class="value">{{ getProgress(shelter.id).toFixed(1) }}%</span>
+              <span class="value">{{ getProgress(shelter.shelterId).toFixed(1) }}%</span>
             </div>
           </div>
           
@@ -106,7 +106,9 @@ import { useRouter } from 'vue-router'
 import L from 'leaflet'
 import { shelters } from '../stores/shelters'
 import axios from 'axios'
+import {ElMessage} from "element-plus";
 
+const backUrl = import.meta.env.VITE_BACK_URL || 'http://localhost:3000'
 const router = useRouter()
 const mapContainer = ref<HTMLElement>()
 let map: L.Map
@@ -155,36 +157,38 @@ const getItemPrice = (name: string) => {
 
 
 // 必要支援金額を計算する関数
-const getNeededAmount = (shelterID: number) => {
-  const shelter = shelters.find(s => s.id === shelterID)
-  let total = 0
-  if (!shelter || !shelter.topRequests || !shelter.requestQuantities) return 0
-  shelter.topRequests.forEach(name => {
-    const quantity = shelter.requestQuantities[name] || 0
-    const price = getItemPrice(name)
-    if (price == null || isNaN(price)) return
-    total += price * quantity
-  })
-  if (isNaN(total) || total == null) return 0
-  return total
-}
+// const getNeededAmount = (shelterID: string) => {
+//   const shelter = shelters.value.find(s => s.shelterId === shelterID)
+//   let total = 0
+//   if (!shelter || !shelter.topRequests || !shelter.requestQuantities) return 0
+//   shelter.topRequests.forEach(name => {
+//     const quantity = shelter.requestQuantities[name] || 0
+//     const price = getItemPrice(name)
+//     if (price == null || isNaN(price)) return
+//     total += price * quantity
+//   })
+//   if (isNaN(total) || total == null) return 0
+//   return total
+// }
 
 // 進捗率を計算する関数
-const getProgress = (shelterID: number): number => {
-  const shelter = shelters.find(s => s.id === shelterID)
-  if (!shelter || typeof shelter.currentSupport !== 'number') return 0
-  const needed = getNeededAmount(shelterID)
+const getProgress = (shelterID: string): number => {
+  const shelter = shelters.value.find(s => s.shelterId === shelterID)
+  if (!shelter || typeof shelter.moneyCur !== 'number') return 0
+  //const needed = getNeededAmount(shelterID)
+  const needed = shelter.moneyReq
   if (needed === 0) return 0
-  const progress = Math.min((shelter.currentSupport / needed) * 100, 100)
+  const progress = Math.min((shelter.moneyCur / needed) * 100, 100)
   return progress
 }
 
 const viewShelterDetail = (shelterId: string) => {
-  router.push(`/shelter/${shelterId}`)
+  router.push({ name: 'shelter', params: { shelterId } })
 }
 
 const goBack = () => {
-  router.push('/')
+  localStorage.clear()
+  router.push('/login')
 }
 
 const initMap = () => {
@@ -196,8 +200,8 @@ const initMap = () => {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map)
 
-  shelters.forEach(shelter => {
-    const progress = getProgress(shelter.id)
+  shelters.value.forEach(shelter => {
+    const progress = getProgress(shelter.shelterId)
     const color = getProgressColor(progress) // 進捗率に応じた色
     const markerHtml = `
   <div style="
@@ -242,9 +246,9 @@ const initMap = () => {
     
     const popupContent = `
       <div>
-        <h3>${shelter.name}</h3>
-        <p><strong>収容:</strong> ${shelter.currentCapacity}/${shelter.maxCapacity}人</p>
-        <p><strong>支援進捗:</strong> ¥${shelter.currentSupport} / ¥${getNeededAmount(shelter.id)}</p>
+        <h3>${shelter.shelterName}</h3>
+        <p><strong>収容:</strong> ${shelter.shelterCur}/${shelter.shelterCap}人</p>
+        <p><strong>支援進捗:</strong> ¥${shelter.moneyCur} / ¥${shelter.moneyReq}</p>
         <div class="progress-bar" style="
           background: #e0e0e0;
           border-radius: 4px;
@@ -260,7 +264,7 @@ const initMap = () => {
           "></div>
         </div>
         <p><strong>進捗率:</strong> ${progress.toFixed(1)}%</p>
-        <button onclick="window.viewShelterFromMap('${shelter.id}')" style="
+        <button onclick="window.viewShelterFromMap('${shelter.shelterId}')" style="
           background: #2196F3;
           color: white;
           border: none;
@@ -276,11 +280,18 @@ const initMap = () => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   setTimeout(() => {
     initMap()
   }, 100)
-  
+  try {
+    const res = await axios.get(backUrl + '/shelter/list')
+    shelters.value = res.data // 假设后端返回的是避难所数组
+    //shelters
+  } catch (e) {
+    ElMessage.error('避難所データの取得に失敗しました')
+    return
+  }
   // Global function for popup button
   ;(window as any).viewShelterFromMap = (shelterId: string) => {
     viewShelterDetail(shelterId)

@@ -6,16 +6,16 @@
     </div>
 
     <div class="shelter-list">
-      <div class="shelter-card" v-for="shelter in shelters" :key="shelter.id">
+      <div class="shelter-card" v-for="shelter in shelters" :key="shelter.shelterId">
         <div class="shelter-info">
-          <h3>{{ shelter.name }}</h3>
+          <h3>{{ shelter.shelterName }}</h3>
           <div class="info-row">
             <span class="label">住所:</span>
             <span>{{ shelter.address }}</span>
           </div>
           <div class="info-row">
             <span class="label">収容人数:</span>
-            <span>{{ shelter.currentOccupancy }} / {{ shelter.maxCapacity }} 人</span>
+            <span>{{ shelter.shelterCur }} / {{ shelter.shelterCap }} 人</span>
           </div>
           <div class="info-row">
             <span class="label">状態:</span>
@@ -23,14 +23,13 @@
           </div>
           <div class="info-row">
             <span class="label">担当者:</span>
-            <span>{{ shelter.manager }}</span>
+            <span>{{ shelter.adminId }}</span>
           </div>
         </div>
         
         <div class="shelter-actions">
           <button @click="editShelter(shelter)" class="edit-btn">✏️ 編集</button>
           <button @click="viewDetails(shelter)" class="detail-btn">👁️ 詳細</button>
-          <button @click="deleteShelter(shelter.id)" class="delete-btn">🗑️ 削除</button>
         </div>
       </div>
     </div>
@@ -42,7 +41,7 @@
         <form @submit.prevent="addShelter">
           <div class="form-group">
             <label>避難所名 *</label>
-            <input v-model="newShelter.name" type="text" required>
+            <input v-model="newShelter.shelterName" type="text" required>
           </div>
           
           <div class="form-group">
@@ -52,41 +51,19 @@
           
           <div class="form-row">
             <div class="form-group">
-              <label>緯度 *</label>
-              <input v-model.number="newShelter.lat" type="number" step="0.000001" required>
-            </div>
-            
-            <div class="form-group">
-              <label>経度 *</label>
-              <input v-model.number="newShelter.lng" type="number" step="0.000001" required>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
               <label>最大収容人数 *</label>
-              <input v-model.number="newShelter.maxCapacity" type="number" required>
+              <input v-model.number="newShelter.shelterCap" type="number" required>
             </div>
             
             <div class="form-group">
               <label>現在の収容人数</label>
-              <input v-model.number="newShelter.currentOccupancy" type="number">
+              <input v-model.number="newShelter.shelterCur" type="number">
             </div>
-          </div>
-          
-          <div class="form-group">
-            <label>担当者名 *</label>
-            <input v-model="newShelter.manager" type="text" required>
           </div>
           
           <div class="form-group">
             <label>担当者連絡先</label>
             <input v-model="newShelter.contact" type="text">
-          </div>
-          
-          <div class="form-group">
-            <label>備考</label>
-            <textarea v-model="newShelter.notes" rows="3"></textarea>
           </div>
           
           <div class="modal-actions">
@@ -104,7 +81,7 @@
         <form @submit.prevent="updateShelter">
           <div class="form-group">
             <label>避難所名 *</label>
-            <input v-model="editingShelter.name" type="text" required>
+            <input v-model="editingShelter.shelterName" type="text" required>
           </div>
           
           <div class="form-group">
@@ -115,12 +92,12 @@
           <div class="form-row">
             <div class="form-group">
               <label>最大収容人数 *</label>
-              <input v-model.number="editingShelter.maxCapacity" type="number" required>
+              <input v-model.number="editingShelter.shelterCap" type="number" required>
             </div>
             
             <div class="form-group">
               <label>現在の収容人数</label>
-              <input v-model.number="editingShelter.currentOccupancy" type="number">
+              <input v-model.number="editingShelter.shelterCur" type="number">
             </div>
           </div>
           
@@ -135,18 +112,13 @@
           </div>
           
           <div class="form-group">
-            <label>担当者名 *</label>
-            <input v-model="editingShelter.manager" type="text" required>
-          </div>
-          
-          <div class="form-group">
             <label>担当者連絡先</label>
             <input v-model="editingShelter.contact" type="text">
           </div>
           
           <div class="modal-actions">
             <button type="button" @click="closeModal" class="cancel-btn">キャンセル</button>
-            <button type="submit" class="submit-btn">更新</button>
+            <button type="submit" @click="updateSubmit" class="submit-btn">更新</button>
           </div>
         </form>
       </div>
@@ -156,17 +128,22 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { onMounted } from 'vue'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
+const mapApiKey = import.meta.env.VITE_GOOGLE_MAP_LATLNG_API_KEY
+const backUrl = import.meta.env.VITE_BACK_URL
 interface Shelter {
-  id: number
-  name: string
+  shelterId: string
+  shelterName: string
   address: string
   lat: number
   lng: number
-  maxCapacity: number
-  currentOccupancy: number
+  shelterCap: number
+  shelterCur: number
   status: 'normal' | 'urgent' | 'needs-supplies' | 'full'
-  manager: string
+  adminId: string
   contact: string
   notes?: string
 }
@@ -175,69 +152,114 @@ const showAddModal = ref(false)
 const showEditModal = ref(false)
 
 const newShelter = ref({
-  name: '',
-  address: '',
-  lat: 35.6762,
-  lng: 139.6503,
-  maxCapacity: 100,
-  currentOccupancy: 0,
-  manager: '',
-  contact: '',
-  notes: ''
-})
-
-const editingShelter = ref<Shelter>({
-  id: 0,
-  name: '',
+  shelterName: '',
   address: '',
   lat: 0,
   lng: 0,
-  maxCapacity: 0,
-  currentOccupancy: 0,
+  shelterCap: 100,
+  shelterCur: 0,
+  adminId: '',
+  contact: '',
+  status: 'normal'
+})
+
+const editingShelter = ref<Shelter>({
+  shelterId: '',
+  shelterName: '',
+  address: '',
+  lat: 0,
+  lng: 0,
+  shelterCap: 0,
+  shelterCur: 0,
   status: 'normal',
-  manager: '',
+  adminId: '',
   contact: ''
 })
 
 const shelters = ref<Shelter[]>([
   {
-    id: 1,
-    name: '中央小学校',
+    shelterId: '1',
+    shelterName: '中央小学校',
     address: '東京都渋谷区○○1-2-3',
     lat: 35.6762,
     lng: 139.6503,
-    maxCapacity: 200,
-    currentOccupancy: 160,
+    shelterCap: 200,
+    shelterCur: 160,
     status: 'urgent',
-    manager: '田中太郎',
+    adminId: '田中太郎',
     contact: '090-1234-5678'
   },
   {
-    id: 2,
-    name: '市民体育館',
+    shelterId: '2',
+    shelterName: '市民体育館',
     address: '東京都渋谷区○○2-3-4',
     lat: 35.6800,
     lng: 139.6600,
-    maxCapacity: 300,
-    currentOccupancy: 135,
+    shelterCap: 300,
+    shelterCur: 135,
     status: 'normal',
-    manager: '佐藤花子',
+    adminId: '佐藤花子',
     contact: '090-2345-6789'
   },
   {
-    id: 3,
-    name: '北部コミュニティセンター',
+    shelterId: '3',
+    shelterName: '北部コミュニティセンター',
     address: '東京都渋谷区○○3-4-5',
     lat: 35.6900,
     lng: 139.6400,
-    maxCapacity: 150,
-    currentOccupancy: 90,
+    shelterCap: 150,
+    shelterCur: 90,
     status: 'needs-supplies',
-    manager: '鈴木一郎',
+    adminId: '鈴木一郎',
     contact: '090-3456-7890'
   }
 ])
-
+onMounted(async () => {
+  try {
+    const res = await axios.get(backUrl + '/shelter/list')
+    res.data.forEach ((shelter: Shelter) => {
+      console.log(shelter)
+      console.log(res)
+    })
+    shelters.value = res.data // 假设后端返回的是避难所数组
+    //shelters
+  } catch (e) {
+    ElMessage.error('避難所データの取得に失敗しました')
+  }
+})
+const updateSubmit = async () => {
+  try {
+    const search = await axios.get(backUrl + '/shelter/getById', {
+      params: { shelterId: editingShelter.value.shelterId }
+    })
+    if(search.data.length == 0){
+      ElMessage.error('避難所情報の取得エラー')
+      return null
+    }
+    const shelterData = {
+      shelterId: editingShelter.value.shelterId,
+      shelterName: editingShelter.value.shelterName,
+      address: editingShelter.value.address,
+      shelterCap: editingShelter.value.shelterCap,
+      shelterCur: editingShelter.value.shelterCur,
+      adminId: localStorage.getItem('userId'),
+      moneyCur:search.data.moneyCur,
+      moneyReq:search.data.moneyReq,
+      status: editingShelter.value.status,
+      contact: editingShelter.value.contact
+    }
+    const res = await axios.post(backUrl + '/shelter/update', editingShelter.value)
+    if(res.data != 1){
+      ElMessage.error('避難所情報の更新に失敗しました')
+      return null
+    }
+    ElMessage.success('避難所情報を更新しました')
+    closeModal()
+  } catch (e) {
+    ElMessage.error('避難所情報の更新エラー')
+    return null
+  }
+}
 const getStatusText = (status: string) => {
   switch (status) {
     case 'urgent': return '緊急対応必要'
@@ -246,16 +268,59 @@ const getStatusText = (status: string) => {
     default: return '正常'
   }
 }
-
-const addShelter = () => {
-  const shelter: Shelter = {
-    id: Date.now(),
-    ...newShelter.value,
-    status: 'normal'
+const randomUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+const addShelter = async () => {
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${newShelter.value.address}&key=${mapApiKey}`
+  try {
+    const res = await axios.get(url)
+    const data = res.data
+    if (data.status === 'OK' && data.results[0]) {
+      const location = data.results[0].geometry.location
+      // location.lat, location.lng 即为经纬度
+      newShelter.value.lat = location.lat
+      newShelter.value.lng = location.lng
+      const shelter: Shelter = {
+        shelterId: randomUUID(),
+        ...newShelter.value,
+        status: 'normal'
+      }
+      const shelterData = {
+        shelterId: shelter.shelterId,
+        shelterName: shelter.shelterName,
+        address: shelter.address,
+        shelterCap: shelter.shelterCap,
+        shelterCur: shelter.shelterCur,
+        adminId: localStorage.getItem('userId'),
+        moneyCur:0,
+        moneyReq:0,
+        status: shelter.status,
+        contact: shelter.contact,
+        lat: shelter.lat,
+        lng: shelter.lng
+      }
+      const dataResponse = await axios.post(backUrl + '/shelter/insert', shelterData)
+      if(dataResponse.data != 1){
+        ElMessage.error('避難所の登録に失敗しました')
+        return null
+      }
+      shelters.value.push(shelter)
+      ElMessage.success('避難所を登録しました')
+      closeModal()
+      resetNewShelter()
+    } else {
+      ElMessage.error('经纬度を取得できませんでした')
+      return null
+    }
+  } catch (e) {
+    alert('经纬度取得時にエラーが発生しました')
+    return null
   }
-  shelters.value.push(shelter)
-  closeModal()
-  resetNewShelter()
 }
 
 const editShelter = (shelter: Shelter) => {
@@ -264,21 +329,21 @@ const editShelter = (shelter: Shelter) => {
 }
 
 const updateShelter = () => {
-  const index = shelters.value.findIndex(s => s.id === editingShelter.value.id)
+  const index = shelters.value.findIndex(s => s.shelterId === editingShelter.value.shelterId)
   if (index !== -1) {
     shelters.value[index] = { ...editingShelter.value }
   }
   closeModal()
 }
 
-const deleteShelter = (id: number) => {
+const deleteShelter = (id: string) => {
   if (confirm('この避難所を削除してもよろしいですか？')) {
-    shelters.value = shelters.value.filter(s => s.id !== id)
+    shelters.value = shelters.value.filter(s => s.shelterId !== id)
   }
 }
 
 const viewDetails = (shelter: Shelter) => {
-  alert(`避難所詳細: ${shelter.name}\n収容状況: ${shelter.currentOccupancy}/${shelter.maxCapacity}人`)
+  alert(`避難所詳細: ${shelter.shelterName}\n収容状況: ${shelter.shelterCur}/${shelter.shelterCap}人`)
 }
 
 const closeModal = () => {
@@ -288,15 +353,15 @@ const closeModal = () => {
 
 const resetNewShelter = () => {
   newShelter.value = {
-    name: '',
+    shelterName: '',
     address: '',
-    lat: 35.6762,
-    lng: 139.6503,
-    maxCapacity: 100,
-    currentOccupancy: 0,
-    manager: '',
+    lat: 0,
+    lng: 0,
+    shelterCap: 100,
+    shelterCur: 0,
+    adminId: '',
     contact: '',
-    notes: ''
+    status: 'normal'
   }
 }
 </script>

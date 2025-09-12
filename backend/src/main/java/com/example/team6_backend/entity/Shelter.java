@@ -3,12 +3,16 @@ package com.example.team6_backend.entity;
 public class Shelter {
     private String shelterId;
     private String shelterName;
+    private Float lat;
+    private Float lng;
     private String address;
     private String adminId;
     private Integer shelterCap;
     private Integer shelterCur;
     private Float moneyCur;
     private Float moneyReq;
+    private String status;
+    private String contact;
 
     // Getters and Setters
 
@@ -35,4 +39,20 @@ public class Shelter {
 
     public Float getMoneyReq() { return moneyReq; }
     public void setMoneyReq(Float moneyReq) { this.moneyReq = moneyReq; }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    public String getContact() { return contact; }
+    public void setContact(String contact) { this.contact = contact; }
+
+    public Float getLat() { return lat; }
+    public void setLat(Float lat) { this.lat = lat; }
+
+    public Float getLng() { return lng; }
+    public void setLng(Float lng) { this.lng = lng; }
 }

@@ -27,7 +27,7 @@ public class RequestController {
         if (affected > 0) {
             return ApiResponse.successMessage("created");
         }
-        return ApiResponse.fail(500, "创建失败");
+        return ApiResponse.fail(500, "Failed to create");
     }
 
     @GetMapping("/list")
@@ -52,5 +52,23 @@ public class RequestController {
     public ApiResponse<Integer> delete(@RequestParam("reqId") String reqId) {
         int affected = userGoodsService.delete(reqId);
         return ApiResponse.success(affected);
+    }
+    @PostMapping("/batchCreate")
+    public ApiResponse<String> batchCreate(@RequestBody List<UserGoods> list) {
+        if (list == null || list.isEmpty()) {
+            return ApiResponse.successMessage("batch created");
+        }
+        // 过滤掉数量<=0的项
+        List<UserGoods> validList = list.stream()
+            .filter(ug -> ug != null && ug.getNumber() != null && ug.getNumber() > 0)
+            .toList();
+        if (validList.isEmpty()) {
+            return ApiResponse.successMessage("batch created");
+        }
+        int affected = userGoodsService.batchCreate(validList);
+        if (affected > 0) {
+            return ApiResponse.successMessage("batch created");
+        }
+        return ApiResponse.fail(500, "Failed to batch create");
     }
 }

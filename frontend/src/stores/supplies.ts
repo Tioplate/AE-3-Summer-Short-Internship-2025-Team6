@@ -8,10 +8,52 @@ export interface Supply {
   quantity: number
   location: string
   status: 'available' | 'requested' | 'distributed'
-  priority: 'low' | 'medium' | 'high'
   createdAt: string
 }
-
+export const shelters = [
+  {
+    id: 1,
+    name: '中央小学校',
+    lat: 35.6762,
+    lng: 139.6503,
+    urgency: 'high',
+    currentCapacity: 180,
+    maxCapacity: 200,
+    recentRequests: 15,
+    urgentRequests: 8,
+    topRequests: ['ミネラルウォーター', '離乳食', '毛布', '常備薬'],
+    requestQuantities: { 'ミネラルウォーター': 50, '離乳食': 20, '毛布': 30, '常備薬': 10 },
+    currentSupport: 2000
+  },
+  {
+    id: 2,
+    name: '市民体育館',
+    lat: 35.6712,
+    lng: 139.6533,
+    urgency: 'medium',
+    currentCapacity: 90,
+    maxCapacity: 150,
+    recentRequests: 8,
+    urgentRequests: 3,
+    topRequests: ['おにぎり', 'タオル', '乾電池'],
+    requestQuantities: { 'おにぎり': 40, 'タオル': 25, '乾電池': 30 },
+    currentSupport: 8000
+  },
+  {
+    id: 3,
+    name: '総合公園体育館',
+    lat: 35.6792,
+    lng: 139.6473,
+    urgency: 'low',
+    currentCapacity: 45,
+    maxCapacity: 100,
+    recentRequests: 4,
+    urgentRequests: 1,
+    topRequests: ['パン', 'マスク'],
+    requestQuantities: { 'パン': 30, 'マスク': 20 },
+    currentSupport: 5000
+  }
+]
 export interface Donation {
   id: string
   donorName: string
@@ -31,15 +73,15 @@ export interface SupplyRequest {
   quantity: number
   unit: string
   status: 'pending' | 'approved' | 'delivered'
-  priority: string
-  reason: string
+    priority:string
+    reason: string
   notes?: string
 }
 
 export interface ShelterRequest {
   id: number
-  name: string
-  manager: string
+  shelterName: string
+  adminId: string
   contact: string
   urgency: 'high' | 'medium' | 'low'
   requestDate: string
@@ -145,7 +187,7 @@ export const useSuppliesStore = defineStore('supplies', () => {
           requestedQuantity: request.quantity,
           actualQuantity: request.quantity, // Default to requested quantity
           unit: request.unit,
-          shelterName: shelter.name,
+          shelterName: shelter.shelterName,
           deliveryDate: new Date().toISOString(),
           status: 'pending_confirmation'
         }
@@ -174,7 +216,6 @@ export const useSuppliesStore = defineStore('supplies', () => {
         quantity: receivedSupply.actualQuantity,
         location: receivedSupply.shelterName,
         status: 'available',
-        priority: 'medium',
         createdAt: new Date().toISOString()
       }
       supplies.value.push(newSupply)

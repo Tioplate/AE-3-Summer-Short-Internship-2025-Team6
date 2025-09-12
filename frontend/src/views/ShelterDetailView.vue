@@ -1,7 +1,7 @@
 <template>
   <div class="shelter-detail-container">
     <header class="header">
-      <h1>{{ shelter?.name }} - 物資要請詳細</h1>
+      <h1>{{ shelter?.shelterName }} - 物資要請詳細</h1>
       <div class="header-buttons">
         <button @click="goBack" class="back-btn">
           <span class="icon">←</span> マップに戻る
@@ -20,7 +20,7 @@
             <div class="status-item">
               <span class="label">収容状況</span>
               <span class="value">
-                {{ shelter.currentCapacity }} / {{ shelter.maxCapacity }}人
+                {{ shelter.shelterCur }} / {{ shelter.shelterCap }}人
                 <span class="percentage">({{ Math.round((shelter.currentCapacity / shelter.maxCapacity) * 100) }}%)</span>
               </span>
             </div>
@@ -28,7 +28,7 @@
               <span class="label">緊急度</span>
               <span class="value">
                 <span class="status-badge" :class="`status-${shelter.urgency}`">
-                  {{ getUrgencyText(shelter.urgency) }}
+                  {{ getUrgencyText(shelter.status) }}
                 </span>
               </span>
             </div>
@@ -38,7 +38,7 @@
             </div>
             <div class="status-item">
               <span class="label">運営責任者</span>
-              <span class="value">{{ shelter.manager }}</span>
+              <span class="value">{{ shelter.adminId }}</span>
             </div>
           </div>
         </div>
@@ -68,9 +68,6 @@
           >
             <div class="request-header">
               <h3>{{ request.itemName }}</h3>
-              <span class="priority-badge" :class="`priority-${request.priority}`">
-                {{ getPriorityText(request.priority) }}
-              </span>
             </div>
             
             <div class="request-details">
@@ -80,12 +77,7 @@
               </div>
               <div class="detail-item">
                 <span class="label  ">到着日時:</span>
-                <span class="value">{{ request.deliveredAt }}</span>
               </div>
-            </div>
-
-            <div v-if="request.description" class="request-description">
-              <strong>詳細:</strong> {{ request.description }}
             </div>
 
             <div class="support-count">
@@ -137,7 +129,6 @@
         </div>
       </div>
     </div>
-
     <div v-else class="loading">
       <p>避難所情報を読み込んでいます...</p>
     </div>
@@ -145,14 +136,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeMount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { shelterGoodsList } from '../stores/shelterGoods'
+import { shelters } from "../stores/shelters.ts";
+import axios from "axios";
+import {ElMessage} from "element-plus";
 
 const router = useRouter()
 const route = useRoute()
 
 const selectedFilter = ref('all')
 const shelter = ref<any>(null)
+const shelterId = ref<string>('');
 
 const filters = [
   { value: 'all', label: 'すべて' },
@@ -270,11 +266,12 @@ const mockShelters = {
     manager: '館長 山田太郎'
   }
 }
-
+const backUrl = import.meta.env.VITE_BACK_URL;
 const totalRequests = computed(() => mockRequests.length)
 const urgentRequests = computed(() => mockRequests.filter(r => r.priority === 'urgent').length)
 const totalSupporters = computed(() => mockRequests.reduce((sum, r) => sum + r.supportCount, 0))
 const averageResponseTime = computed(() => 2.5)
+
 
 const getUrgencyText = (urgency: string) => {
   const map: Record<string, string> = {
@@ -331,13 +328,37 @@ const goBack = () => {
 }
 
 const goToDonation = () => {
-  router.push(`/donation/${route.params.id}`)
+  router.push(`/donation/${route.params.shelterId}`)
 }
-
-onMounted(() => {
-  const shelterId = route.params.id as string
-  shelter.value = (mockShelters as any)[shelterId] || mockShelters.shelter1
+onBeforeMount( () => {
+  if (!route.params.shelterId) {
+    ElMessage.error('避難所IDが指定されていません')
+  }
+  shelterId.value = route.params.shelterId as string
 })
+
+onMounted(async () => {
+
+  //alert(shelterId.value)
+  try {
+    const res = await axios.get(backUrl + '/shelter/getById', {
+      params: { shelterId: shelterId.value }
+    })
+    //shelters.value = res.data // 假设后端返回的是避难所数组
+    //shelters
+    //alert(res.data)
+    shelter.value = shelters.value.find(s => s.shelterId === shelterId.value) || null
+    if (!shelter.value) {
+      ElMessage.error('指定された避難所が見つかりません')
+    }
+  } catch (e) {
+    ElMessage.error('避難所データの取得に失敗しました')
+    return
+  }
+  //shelter.value = (mockShelters as any)[shelterId] || mockShelters.shelter1
+
+})
+
 </script>
 
 <style scoped>

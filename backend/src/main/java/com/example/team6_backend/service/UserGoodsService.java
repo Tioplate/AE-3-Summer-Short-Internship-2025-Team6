@@ -28,4 +28,10 @@ public class UserGoodsService {
     public List<UserGoods> listByUser(String userId) {
         return userGoodsMapper.selectByUserId(userId);
     }
+    public int batchCreate(List<UserGoods> list) {
+        for (UserGoods ug : list) {
+            ug.setReqId(UUID.randomUUID().toString());
+        }
+        return userGoodsMapper.batchInsert(list);
+    }
 }

@@ -28,6 +28,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import { ElMessage } from 'element-plus'
 
 const backUrl = import.meta.env.VITE_BACK_URL;
 const router = useRouter();
@@ -63,19 +64,19 @@ const signUp = async () => {
     });
 
     if (data.code === 0) {
-      alert('登録が成功しました！ログイン画面に移動します。');
+      ElMessage.success('登録が成功しました！ログイン画面に移動します。')
       router.push('/login');
     } else {
-      alert(`登録に失敗しました: ${data.message}`);
+      ElMessage.error(`登録に失敗しました: ${data.message}`)
     }
   } catch (error) {
     console.error('登録エラー:', error);
-    alert('登録中にエラーが発生しました。');
+    ElMessage.error('登録中にエラーが発生しました。')
   }
 };
 
 const goBack = () => {
-  router.push('/')
+  router.push('/login')
 }
 </script>
 

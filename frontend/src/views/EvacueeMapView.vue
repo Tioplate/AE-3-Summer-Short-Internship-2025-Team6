@@ -13,15 +13,19 @@
         <h3>避難所の状況</h3>
         <div class="legend-item">
           <span class="marker red"></span>
-          <span>緊急支援が必要</span>
+          <span>緊急対応必要</span>
         </div>
         <div class="legend-item">
           <span class="marker yellow"></span>
-          <span>支援が必要</span>
+          <span>物資不足</span>
+        </div>
+        <div class="legend-item">
+          <span class="marker orange"></span>
+          <span>満員</span>
         </div>
         <div class="legend-item">
           <span class="marker green"></span>
-          <span>状況良好</span>
+          <span>正常</span>
         </div>
       </div>
     </div>
@@ -32,64 +36,86 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import L from 'leaflet'
+import axios from "axios";
+import {ElMessage} from "element-plus";
 
+const backUrl = import.meta.env.VITE_BACK_URL || 'http://localhost:3000'
+const mapApiKey = import.meta.env.VITE_GOOGLE_MAP_LATLNG_API_KEY
 const router = useRouter()
 const mapContainer = ref<HTMLElement>()
 let map: L.Map
 
-const shelters = [
-  {
-    id: 'shelter1',
-    name: '中央小学校',
-    lat: 35.6762,
-    lng: 139.6503,
-    urgency: 'high',
-    currentCapacity: 180,
-    maxCapacity: 200,
-    recentRequests: 15,
-    urgentRequests: 8,
-    topRequests: ['ミネラルウォーター', '離乳食', '毛布', '常備薬']
-  },
-  {
-    id: 'shelter2',
-    name: '市民体育館',
-    lat: 35.6712,
-    lng: 139.6533,
-    urgency: 'medium',
-    currentCapacity: 90,
-    maxCapacity: 150,
-    recentRequests: 8,
-    urgentRequests: 3,
-    topRequests: ['おにぎり', 'タオル', '乾電池']
-  },
-  {
-    id: 'shelter3',
-    name: '総合公園体育館',
-    lat: 35.6792,
-    lng: 139.6473,
-    urgency: 'low',
-    currentCapacity: 45,
-    maxCapacity: 100,
-    recentRequests: 4,
-    urgentRequests: 1,
-    topRequests: ['パン', 'マスク']
-  }
-]
+interface Shelter {
+  shelterId: string
+  shelterName: string
+  lat: number
+  lng: number
+  address: string
+  adminId: string
+  shelterCap: number
+  shelterCur: number
+  moneyCur: number
+  moneyReq: number
+  status: string
+  contact: string
+}
+
+const shelters = ref<Shelter[]>([])
+// const shelters = [
+//   {
+//     id: 'shelter1',
+//     name: '中央小学校',
+//     lat: 35.6762,
+//     lng: 139.6503,
+//     urgency: 'urgent',
+//     currentCapacity: 180,
+//     maxCapacity: 200,
+//     recentRequests: 15,
+//     urgentRequests: 8,
+//     topRequests: ['ミネラルウォーター', '離乳食', '毛布', '常備薬']
+//   },
+//   {
+//     id: 'shelter2',
+//     name: '市民体育館',
+//     lat: 35.6712,
+//     lng: 139.6533,
+//     urgency: 'needs-supplies',
+//     currentCapacity: 90,
+//     maxCapacity: 150,
+//     recentRequests: 8,
+//     urgentRequests: 3,
+//     topRequests: ['おにぎり', 'タオル', '乾電池']
+//   },
+//   {
+//     id: 'shelter3',
+//     name: '総合公園体育館',
+//     lat: 35.6792,
+//     lng: 139.6473,
+//     urgency: 'normal',
+//     currentCapacity: 45,
+//     maxCapacity: 100,
+//     recentRequests: 4,
+//     urgentRequests: 1,
+//     topRequests: ['パン', 'マスク']
+//   }
+// ]
 
 const getUrgencyText = (urgency: string) => {
   const map: Record<string, string> = {
-    high: '緊急支援必要',
-    medium: '支援必要',
-    low: '状況良好'
+    urgent: '緊急対応必要',
+    'needs-supplies': '物資不足',
+    full: '満員',
+    normal: '正常'
   }
-  return map[urgency] || '状況良好'
+  return map[urgency] || '正常'
 }
 
 const getMarkerColor = (urgency: string) => {
   const colors: Record<string, string> = {
-    high: 'red',
-    medium: 'orange',
-    low: 'green'
+    urgent: 'red',
+    'needs-supplies': 'orange',
+    full: 'yellow',
+    normal: 'green'
   }
   return colors[urgency] || 'green'
 }
@@ -99,7 +125,8 @@ const viewShelterDetail = (shelterId: string) => {
 }
 
 const goBack = () => {
-  router.push('/')
+  localStorage.clear()
+  router.push('/login')
 }
 const goHome = () => {
   router.push('/evacuee')
@@ -114,8 +141,8 @@ const initMap = () => {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map)
 
-  shelters.forEach(shelter => {
-    const color = getMarkerColor(shelter.urgency)
+  shelters.value.forEach(shelter => {
+    const color = getMarkerColor(shelter.status)
     const markerHtml = `
       <div style="
         background-color: ${color};
@@ -131,10 +158,9 @@ const initMap = () => {
         font-weight: bold;
         font-size: 12px;
       ">
-        ${shelter.urgentRequests}
       </div>
     `
-    
+
     const customIcon = L.divIcon({
       html: markerHtml,
       iconSize: [25, 25],
@@ -145,9 +171,8 @@ const initMap = () => {
     
     const popupContent = `
       <div>
-        <h3>${shelter.name}</h3>
-        <p><strong>収容:</strong> ${shelter.currentCapacity}/${shelter.maxCapacity}人</p>
-        <p><strong>緊急要請:</strong> ${shelter.urgentRequests}件</p>
+        <h3>${shelter.shelterName}</h3>
+        <p><strong>収容:</strong> ${shelter.shelterCur}/${shelter.shelterCap}人</p>
 
       </div>
     `
@@ -156,11 +181,18 @@ const initMap = () => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   setTimeout(() => {
     initMap()
   }, 100)
-  
+  try {
+    const res = await axios.get(backUrl + '/shelter/list')
+    shelters.value = res.data // 假设后端返回的是避难所数组
+    //shelters
+  } catch (e) {
+    ElMessage.error('避難所データの取得に失敗しました')
+    return
+  }
   // Global function for popup button
   ;(window as any).viewShelterFromMap = (shelterId: string) => {
     viewShelterDetail(shelterId)
@@ -258,7 +290,8 @@ onMounted(() => {
 }
 
 .marker.red { background-color: red; }
-.marker.yellow { background-color: orange; }
+.marker.yellow { background-color: yellow; }
+.marker.orange { background-color: orange; }
 .marker.green { background-color: green; }
 
 .shelter-list {

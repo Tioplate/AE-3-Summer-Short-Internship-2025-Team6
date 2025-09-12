@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/shelter_goods")
@@ -180,5 +181,20 @@ public class ShelterGoodsController {
     @PostMapping("/updateNumberReq")
     public int updateNumberReq(@RequestParam String goodsId, @RequestParam Integer numberReq) {
         return shelterGoodsService.updateNumberReq(goodsId, numberReq);
+    }
+
+    @PostMapping("/batchUpsert")
+    public int batchUpsert(@RequestBody List<ShelterGoods> list) {
+        // 过滤掉无效项（如goodsId为空或numberReq为null/0）
+        List<ShelterGoods> validList = list == null ? List.of() : list.stream()
+            .filter(g -> g != null && g.getGoodsId() != null && !g.getGoodsId().isEmpty() && g.getNumberReq() != null && g.getNumberReq() > 0)
+            .toList();
+        if (validList.isEmpty()) return 0;
+        return shelterGoodsService.batchUpsert(validList);
+    }
+
+    @GetMapping("/groupByShelter")
+    public Map<String, List<ShelterGoods>> groupByShelter() {
+        return shelterGoodsService.groupByShelterId();
     }
 }

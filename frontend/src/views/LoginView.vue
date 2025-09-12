@@ -46,6 +46,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from "axios";
+import {ElMessage} from "element-plus";
 
 const router = useRouter()
 
@@ -76,6 +77,14 @@ const goToSignUp = () => {
 
 const login = async (apiEndpoint: string, redirectPath: string) => {
   // APIを叩いてログイン処理を行う
+  if (userId.value == ''){
+    ElMessage.error('UserIDを入力してください');
+    return;
+  }
+  if (password.value == ''){
+    ElMessage.error('パスワードを入力してください');
+    return;
+  }
   try {
     // const response = await fetch(apiEndpoint, { // 実際のエンドポイントに合わせてください
     //   method: 'POST',
@@ -110,14 +119,14 @@ const login = async (apiEndpoint: string, redirectPath: string) => {
     else{
       const data = response.data;
       if (data.code !== 0) {
-        alert(`ログインに失敗しました: ${data.message}`);
+        ElMessage.error(`ログインに失敗しました: ${data.message}`);
         return;
       }
       // トークンをローカルストレージに保存
       localStorage.setItem('token', data.token);
       localStorage.setItem('userId', userId.value);
       localStorage.setItem('permission', String(permission.value));
-      alert('ログインに成功しました');
+      ElMessage.success('ログインに成功しました');
     }
     //console.log('ログイン成功 (仮):', { email: userId.value, password: password.value, apiEndpoint });
     router.push(redirectPath); // ログイン後の画面にリダイレクト

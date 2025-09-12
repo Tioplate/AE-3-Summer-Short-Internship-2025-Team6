@@ -21,4 +21,12 @@ public interface ShelterGoodsMapper {
     List<ShelterGoods> selectByShelterId(@Param("shelterId") String shelterId);
 
     ShelterGoods selectByGoodsId(@Param("goodsId") String goodsId);
+
+    List<ShelterGoods> selectByGoodsIds(@Param("list") List<String> goodsIds);
+
+    int batchUpdateNumberReq(@Param("list") List<ShelterGoods> list);
+
+    int batchInsert(@Param("list") List<ShelterGoods> list);
+
+    List<ShelterGoods> selectAll();
 }

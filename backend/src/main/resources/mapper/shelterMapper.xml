@@ -4,8 +4,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.team6_backend.mapper.ShelterMapper">
     <insert id="insert" parameterType="com.example.team6_backend.entity.Shelter">
-        INSERT INTO shelter (shelter_id, shelter_name, address, admin_id, shelter_cap, shelter_cur, money_cur, money_req)
-        VALUES (#{shelterId}, #{shelterName}, #{address}, #{adminId}, #{shelterCap}, #{shelterCur}, #{moneyCur}, #{moneyReq})
+        INSERT INTO shelter (shelter_id, shelter_name, lat, lng, address, admin_id, shelter_cap, shelter_cur, money_cur, money_req, status, contact)
+        VALUES (#{shelterId}, #{shelterName}, #{lat}, #{lng}, #{address}, #{adminId}, #{shelterCap}, #{shelterCur}, #{moneyCur}, #{moneyReq}, #{status}, #{contact});
     </insert>
 
     <delete id="deleteById" parameterType="string">
@@ -15,27 +15,36 @@
     <update id="update" parameterType="com.example.team6_backend.entity.Shelter">
         UPDATE shelter
         SET shelter_name = #{shelterName},
+            lat = #{lat},
+            lng = #{lng},
             address = #{address},
             admin_id = #{adminId},
             shelter_cap = #{shelterCap},
             shelter_cur = #{shelterCur},
             money_cur = #{moneyCur},
-            money_req = #{moneyReq}
+            money_req = #{moneyReq},
+            status = #{status},
+            contact = #{contact}
         WHERE shelter_id = #{shelterId}
     </update>
-    <update id="updateCurrentCapacity" parameterType="map">
+    <update id="updateCurrentCapacity">
         UPDATE shelter
         SET shelter_cur = #{shelterCur}
         WHERE shelter_id = #{shelterId}
     </update>
-    <update id="updateCurrentMoney" parameterType="map">
+    <update id="updateCurrentMoney">
         UPDATE shelter
         SET money_cur = #{moneyCur}
         WHERE shelter_id = #{shelterId}
     </update>
-    <update id="updateRequestedMoney" parameterType="map">
+    <update id="updateRequestedMoney">
         UPDATE shelter
         SET money_req = #{moneyReq}
+        WHERE shelter_id = #{shelterId}
+    </update>
+    <update id="updateStatus">
+        UPDATE shelter
+        SET status = #{status}
         WHERE shelter_id = #{shelterId}
     </update>
 
@@ -45,5 +54,11 @@
 
     <select id="selectById" parameterType="string" resultType="com.example.team6_backend.entity.Shelter">
         SELECT * FROM shelter WHERE shelter_id = #{shelterId}
+    </select>
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM shelter
+    </select>
+    <select id="countByStatus" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM shelter WHERE status = #{status}
     </select>
 </mapper>

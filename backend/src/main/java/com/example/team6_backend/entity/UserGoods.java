@@ -4,8 +4,9 @@ public class UserGoods {
     private String reqId;
     private String userId;
     private String shelterId;
-    private String url;
+    private String goodsId;
     private Integer number;
+    private String status;
 
     // Getters and Setters
 
@@ -18,9 +19,11 @@ public class UserGoods {
     public String getShelterId() { return shelterId; }
     public void setShelterId(String shelterId) { this.shelterId = shelterId; }
 
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
+    public String getGoodsId() { return goodsId; }
+    public void setGoodsId(String goodsId) { this.goodsId = goodsId; }
 
     public Integer getNumber() { return number; }
     public void setNumber(Integer number) { this.number = number; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

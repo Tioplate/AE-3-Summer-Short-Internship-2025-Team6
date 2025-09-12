@@ -52,7 +52,8 @@ const router = useRouter()
 const activeTab = ref('map')
 
 const logout = () => {
-  router.push('/')
+  localStorage.clear()
+  router.push('/login')
 }
 </script>
 

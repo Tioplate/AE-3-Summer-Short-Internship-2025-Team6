@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.team6_backend.mapper.ShelterGoodsMapper">
     <insert id="insert" parameterType="com.example.team6_backend.entity.ShelterGoods">
-        INSERT INTO shelter_goods (goods_id, goods_name, shelter_id, number_now, number_req, comment) VALUES (#{goodsId}, #{goodsName}, #{shelterId}, #{numberNow}, #{numberReq}, #{comment});
+        INSERT INTO shelter_goods (goods_id, goods_name, shelter_id, number_now, number_req, comment, status) VALUES (#{goodsId}, #{goodsName}, #{shelterId}, #{numberNow}, #{numberReq}, #{comment}, #{status});
     </insert>
     <delete id="deleteById" parameterType="String">
         DELETE FROM shelter_goods WHERE goods_id = #{goodsId};
@@ -15,15 +15,17 @@
         shelter_id = #{shelterId},
         number_now = #{numberNow},
         number_req = #{numberReq},
-        comment = #{comment}
+        comment = #{comment},
+        status = #{status}
         WHERE goods_id = #{goodsId};
     </update>
-    <update id="updateNumberNow" parameterType="map">
+    <update id="updateNumberNow">
         UPDATE shelter_goods
         SET number_now = #{numberNow}
         WHERE goods_id = #{goodsId};
     </update>
-    <update id="updateNumberReq" parameterType="map">
+
+    <update id="updateNumberReq">
         UPDATE shelter_goods
         SET number_req = #{numberReq}
         WHERE goods_id = #{goodsId};
@@ -33,5 +35,34 @@
     </select>
     <select id="selectByGoodsId" parameterType="String" resultType="com.example.team6_backend.entity.ShelterGoods">
         SELECT * FROM shelter_goods WHERE goods_id = #{goodsId};
+    </select>
+    <select id="selectByGoodsIds" parameterType="java.util.List" resultType="com.example.team6_backend.entity.ShelterGoods">
+        SELECT * FROM shelter_goods WHERE goods_id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    <update id="batchUpdateNumberReq">
+        UPDATE shelter_goods
+        SET number_req = number_req + CASE goods_id
+        <foreach collection="list" item="item">
+            WHEN #{item.goodsId} THEN #{item.numberReq}
+        </foreach>
+        ELSE 0
+        END
+        WHERE goods_id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.goodsId}
+        </foreach>
+    </update>
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO shelter_goods (goods_id, goods_name, shelter_id, number_now, number_req, comment, status)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.goodsId}, #{item.goodsName}, #{item.shelterId}, #{item.numberNow}, #{item.numberReq}, #{item.comment}, #{item.status})
+        </foreach>
+    </insert>
+    <select id="selectAll" resultType="com.example.team6_backend.entity.ShelterGoods">
+        SELECT * FROM shelter_goods
     </select>
 </mapper>

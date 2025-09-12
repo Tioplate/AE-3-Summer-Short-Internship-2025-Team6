@@ -40,7 +40,19 @@ public class ShelterService {
         return shelterMapper.updateRequestedMoney(shelterId, moneyReq);
     }
 
+    public int updateStatus(String shelterId, String status) {
+        return shelterMapper.updateStatus(shelterId, status);
+    }
+
     public Shelter selectById(String shelterId) {
         return shelterMapper.selectById(shelterId);
+    }
+
+    public int countAll() {
+        return shelterMapper.countAll();
+    }
+
+    public int countByStatus(String status) {
+        return shelterMapper.countByStatus(status);
     }
 }

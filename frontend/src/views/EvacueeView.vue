@@ -10,7 +10,7 @@
       <div class="shelter-selection">
         <h2>避難所を選択</h2>
         <select v-model="selectedShelter" class="shelter-select">
-          <option value="">避難所を選択してください</option>
+          <option value="" v-if="!selectedShelter">避難所を選択してください</option>
           <option v-for="shelter in shelters" :key="shelter.id" :value="shelter.id">
             {{ shelter.name }}
           </option>
@@ -87,8 +87,8 @@
           <div class="modal-content">
             <h3>検索結果を選択してください</h3>
             <ul>
-              <li v-for="cat in modalCategories" :key="cat" @click="selectCategory(cat)" class="modal-category">
-                {{ cat }}
+              <li v-for="cat in modalCategories" :key="cat.itemName" @click="selectCategory(cat)" class="modal-category">
+                {{ cat.itemName }}
               </li>
             </ul>
             <button @click="closeCategoryModal" class="modal-btn">閉じる</button>
@@ -111,7 +111,11 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import EvacueeMapView from './EvacueeMapView.vue'
+import axios from "axios";
+import { ElMessage } from 'element-plus'
+import { onMounted } from 'vue'
 
+const backUrl = import.meta.env.VITE_BACK_URL
 const router = useRouter()
 
 const selectedShelter = ref('')
@@ -120,22 +124,38 @@ const freeRequest = ref('')
 const itemKeyword = ref('')
 const selectedCategoryName = ref('')
 const showCategoryModal = ref(false)
-const modalCategories = ref<string[]>([])
+const modalCategories = ref<modalCategory[]>([])
 const showSuccess = ref(false)
 const itemRequests = reactive<Record<string, number>>({})
 
-// 疑似キーワード→カテゴリデータ
-const keywordCategoryMap: Record<string, string[]> = {
-  'ティッシュ': ['ボックスティッシュ', 'ポケットティッシュ', 'ウェットティッシュ'],
-  'ご飯': ['白米', 'おにぎり', 'レトルトご飯', 'お粥'],
-  'マスク': ['不織布マスク', '布マスク', '子供用マスク'],
+interface ItemInfo {
+  itemCode: string
+  itemName: string
+  itemPrice: number
+  genreId: string
+  itemUrl: string
+  smallImageUrls: string[]
 }
 
-const shelters = [
-  { id: 'shelter1', name: '中央小学校' },
-  { id: 'shelter2', name: '市民体育館' },
-  { id: 'shelter3', name: '総合公園体育館' },
-]
+interface modalCategory {
+  itemName: string
+  genreId: string
+}
+// 疑似キーワード→カテゴリデータ
+const keywordCategoryMap: Record<string, ItemInfo[]> = {
+  //'ティッシュ': ['ボックスティッシュ', 'ポケットティッシュ', 'ウェットティッシュ'],
+  //'ご飯': ['白米', 'おにぎり', 'レトルトご飯', 'お粥'],
+  //'マスク': ['不織布マスク', '布マスク', '子供用マスク'],
+
+}
+
+
+// const shelters = [
+//   { id: 'shelter1', name: '中央小学校' },
+//   { id: 'shelter2', name: '市民体育館' },
+//   { id: 'shelter3', name: '総合公園体育館' },
+// ]
+const shelters = ref<{ id: string, name: string }[]>([])
 
 const categories = [
   { id: 'food', name: '食料・水' },
@@ -144,6 +164,7 @@ const categories = [
   { id: 'other', name: 'その他' },
 ]
 
+
 const items = [
   // 食料・水
   { id: 'water', name: 'ミネラルウォーター', category: 'food', priority: 'high' },
@@ -151,19 +172,19 @@ const items = [
   { id: 'bread', name: 'パン', category: 'food', priority: 'medium' },
   { id: 'instant', name: 'インスタント食品', category: 'food', priority: 'medium' },
   { id: 'baby_food', name: '離乳食・ベビーフード', category: 'food', priority: 'high' },
-  
+
   // 衣類・日用品
   { id: 'blanket', name: '毛布', category: 'clothing', priority: 'high' },
   { id: 'towel', name: 'タオル', category: 'clothing', priority: 'medium' },
   { id: 'underwear', name: '下着・靴下', category: 'clothing', priority: 'medium' },
   { id: 'diaper', name: 'おむつ', category: 'clothing', priority: 'high' },
-  
+
   // 医薬品・衛生用品
   { id: 'mask', name: 'マスク', category: 'medical', priority: 'medium' },
   { id: 'sanitizer', name: '消毒用アルコール', category: 'medical', priority: 'high' },
   { id: 'medicine', name: '常備薬・処方薬', category: 'medical', priority: 'high' },
   { id: 'tissue', name: 'ティッシュ・トイレットペーパー', category: 'medical', priority: 'medium' },
-  
+
   // その他
   { id: 'battery', name: '乾電池', category: 'other', priority: 'medium' },
   { id: 'phone_charger', name: 'スマホ充電器', category: 'other', priority: 'medium' },
@@ -192,21 +213,87 @@ const decreaseQuantity = (itemId: string) => {
     itemRequests[itemId]--
   }
 }
-// 検索ボタン押下時
-const searchCategories = () => {
-  const keyword = itemKeyword.value.trim()
-  if (!keyword) return
-  // 疑似API
 
-  modalCategories.value = keywordCategoryMap[keyword] || ['該当カテゴリなし']
+onMounted(async () => {
+  try {
+    const res = await axios.get(backUrl + '/shelter/list')
+    shelters.value = res.data.map((s: any) => ({
+      id: s.shelterId,
+      name: s.shelterName
+    }))
+    console.log(shelters.value)
+  } catch (e) {
+    alert('避難所リストの取得に失敗しました')
+    ElMessage.error('避難所リストの取得に失敗しました')
+  }
+})
+
+// 検索ボタン押下時
+const searchCategories = async () => {
+  const keyword = itemKeyword.value.trim()
+  if (!keyword) {
+    ElMessage.warning('キーワードを入力してください')
+    return
+  }
+  if(new TextEncoder().encode(keyword).length < 2) {
+    ElMessage.warning('キーワードは英数字2文字以上または漢字1文字で入力してください')
+    return
+  }
+  // 疑似API
+  try {
+    const res = await axios.get(backUrl + '/shelter_goods/search', {
+      params: {
+        keyword: keyword,
+        page: 1,
+        pageSize: 5
+      }
+    })
+    if(res.data.length > 0) {
+      console.log(res.data)
+      keywordCategoryMap[keyword] = res.data
+      keywordCategoryMap[keyword].forEach ((item) => {
+        const itemPush: modalCategory = { itemName: item.itemName, genreId: item.genreId }
+        modalCategories.value.push(itemPush)
+      })
+    }
+    else{
+      modalCategories.value = [{itemName: '該当カテゴリなし', genreId: ''}]
+    }
+  } catch (e) {
+    modalCategories.value = [{itemName: '検索機能エラー', genreId: ''}]
+  }
   showCategoryModal.value = true
 }
-const selectCategory = (cat: string) => {
-  selectedCategoryName.value = cat
+const selectCategory = async (cat: modalCategory) => {
+
+  try {
+    const res = await axios.get(backUrl + '/shelter_goods/searchGenreId', {
+      params: {
+        genreId: cat.genreId
+      }
+    })
+    if(res.data.length > 0) {
+      console.log(res.data)
+      if (!items.some(item => item.id === cat.genreId)) {
+        items.push({ id: cat.genreId, name: res.data, category: 'other', priority: 'low' })
+        ElMessage.success('カテゴリを追加しました: ' + res.data)
+      }
+      else{
+        ElMessage.info('既にカテゴリが存在します: ' + res.data)
+      }
+    }
+    else{
+      ElMessage.error('未知エラー')
+    }
+  } catch (e) {
+    ElMessage.error('ジャンル検索検索機能エラー')
+  }
+  modalCategories.value = []
   showCategoryModal.value = false
 }
 
 const closeCategoryModal = () => {
+  modalCategories.value = []
   showCategoryModal.value = false
 }
 
@@ -217,23 +304,80 @@ const hasAnyRequest = () => {
     || (itemKeyword.value.trim() !== '' && selectedCategoryName.value !== '')
 }
 
-const submitRequest = () => {
+const submitRequest = async () => {
   console.log('Submitting request:', {
     shelter: selectedShelter.value,
     items: itemRequests,
     freeRequest: freeRequest.value,
     keyword: itemKeyword.value,
-    category: selectedCategoryName.value,
+    category: selectedCategoryName.value
   })
-  showSuccess.value = true
-
+  // Here you would typically send the request data to your backend API
+  interface UserGoods {
+    reqId: string
+    userId: string
+    shelterId: string
+    goodsId: string
+    number: number
+    status: string
+  }
+  interface ShelterGoods {
+    goodsId: string
+    goodsName: string
+    shelterId: string
+    numberNow: number
+    numberReq: number
+    comment?: string
+    status?: string
+  }
+  const randomUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  const userGoodsList: UserGoods[] = []
+  const shelterGoodsList: ShelterGoods[] = []
   // Reset form
   Object.keys(itemRequests).forEach(key => {
-    itemRequests[key] = 0
+    if(itemRequests[key] > 0) {
+      const matchedItem = items.find(item => item.id === key)
+      const newReq: UserGoods = {
+        reqId: randomUUID(),
+        userId: localStorage.getItem("userId") ?? "", // 仮ユーザーID
+        shelterId: selectedShelter.value,
+        goodsId: key,
+        number: itemRequests[key],
+        status: matchedItem ? matchedItem.priority : 'low'
+      }
+      const newShelterGoods: ShelterGoods = {
+        goodsId: key,
+        goodsName: matchedItem ? matchedItem.name : 'unknown',
+        shelterId: selectedShelter.value,
+        numberNow: 0,
+        numberReq: itemRequests[key],
+        comment: '',
+        status: matchedItem ? matchedItem.priority : 'low'
+      }
+      userGoodsList.push(newReq)
+      shelterGoodsList.push(newShelterGoods)
+      itemRequests[key] = 0
+    }
   })
+  try {
+    // 1. 批量创建用户请求
+    await axios.post(backUrl + '/requests/batchCreate', userGoodsList)
+    // 2. 批量 upsert 避难所物资
+    await axios.post(backUrl + '/shelter_goods/batchUpsert', shelterGoodsList)
+    showSuccess.value = true
+  } catch (e) {
+    ElMessage.error('要請送信に失敗しました')
+  }
   freeRequest.value = ''
   itemKeyword.value = ''
   selectedCategoryName.value = ''
+  //showSuccess.value = true
 }
 
 

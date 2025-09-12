@@ -14,6 +14,9 @@ public interface ShelterMapper {
     int updateCurrentCapacity(@Param("shelterId") String shelterId, @Param("shelterCur") Integer shelterCur);
     int updateCurrentMoney(@Param("shelterId") String shelterId, @Param("moneyCur") Integer moneyCur);
     int updateRequestedMoney(@Param("shelterId") String shelterId, @Param("moneyReq") Integer moneyReq);
+    int updateStatus(@Param("shelterId") String shelterId, @Param("status") String status);
     List<Shelter> selectAll();
     Shelter selectById(String shelterId);
+    int countAll();
+    int countByStatus(@Param("status") String status);
 }
