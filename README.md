@@ -15,6 +15,16 @@ Rakuten Summer Short Internship 2025 で Team 6 として開発した、災害�
 - 管理者向け画面
 - 外部 API との連携
 
+## My Contributions
+
+チーム開発の中で、主にバックエンド・データベースとフロントエンド連携を担当しました。
+
+- MySQL の初期データベーススキーマと SQL の作成
+- Spring Boot + MyBatis による避難所物資データの CRUD / API 実装
+- Vue 3 と Spring Boot 間の Sign Up / Login 連携（Axios）
+- `AuthController` を含む認証処理の実装・修正
+- Rakuten Web Service を利用した商品・ジャンル検索機能の実装
+
 ## Tech Stack
 
 ### Frontend
